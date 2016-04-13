@@ -16,32 +16,22 @@
 
 package net.floodlightcontroller.topology;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Set;
-
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import net.floodlightcontroller.routing.BroadcastTree;
 import net.floodlightcontroller.routing.Link;
 import net.floodlightcontroller.routing.Route;
 import net.floodlightcontroller.routing.RouteId;
 import net.floodlightcontroller.servicechaining.ServiceChain;
 import net.floodlightcontroller.util.ClusterDFS;
-
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.U64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import java.util.*;
 
 /**
  * A representation of a network topology.  Used internally by
@@ -836,6 +826,51 @@ public class TopologyInstance {
         return result;
     }
 
+    protected Route buildroute(RouteId id, BroadcastTree tree) {
+        NodePortTuple npt;
+        DatapathId srcId = id.getSrc();
+        DatapathId dstId = id.getDst();
+        //set of NodePortTuples on the route
+        LinkedList<NodePortTuple> sPorts = new LinkedList<NodePortTuple>();
+
+        if (tree == null) return null;
+
+        // TODO: Check if the src and dst are in the tree
+        // if (destinationRootedFullTrees.get(dstId) == null) return null;
+
+        Map<DatapathId, Link> nexthoplinks = tree.getLinks();
+
+        if (!switches.contains(srcId) || !switches.contains(dstId)) {
+            // This is a switch that is not connected to any other switch
+            // hence there was no update for links (and hence it is not
+            // in the network)
+            log.info("buildroute: Standalone switch: {}", srcId);
+
+            // The only possible non-null path for this case is
+            // if srcId equals dstId --- and that too is an 'empty' path []
+
+        } else if ((nexthoplinks!=null) && (nexthoplinks.get(srcId) != null)) {
+            while (!srcId.equals(dstId)) {
+                Link l = nexthoplinks.get(srcId);
+                npt = new NodePortTuple(l.getSrc(), l.getSrcPort());
+                sPorts.addLast(npt);
+                npt = new NodePortTuple(l.getDst(), l.getDstPort());
+                sPorts.addLast(npt);
+                srcId = nexthoplinks.get(srcId).getDst();
+            }
+        }
+        // else, no path exists, and path equals null
+
+        Route result = null;
+        if (sPorts != null && !sPorts.isEmpty()) {
+            result = new Route(id, sPorts);
+        }
+        if (log.isTraceEnabled()) {
+            log.trace("buildroute: {}", result);
+        }
+        return result;
+    }
+
     /*
      * Getter Functions
      */
@@ -856,6 +891,57 @@ public class TopologyInstance {
         Link link = bt.getLinks().get(srcId);
         if (link == null) return false;
         return true;
+    }
+
+    /*
+    Function that calls Yen's algorithm and returns a list of routes
+    from A to B.
+     */
+    protected ArrayList<Route> getRoutes(DatapathId src, DatapathId dst, Integer K) {
+        return yens(src, dst, K);
+    }
+
+    protected ArrayList<Route> yens(DatapathId src, DatapathId dst, Integer K) {
+        Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
+
+        int tunnel_weight = switchPorts.size() + 1;
+        for (NodePortTuple npt : tunnelPorts) {
+            if (allLinks.get(npt) == null) continue;
+            for (Link link : allLinks.get(npt)) {
+                if (link == null) continue;
+                linkCost.put(link, tunnel_weight);
+            }
+        }
+
+        Map<DatapathId, Set<Link>> linkDpidMap = new HashMap<DatapathId, Set<Link>>();
+        for (DatapathId s : switches) {
+            if (switchPorts.get(s) == null) continue;
+            for (OFPort p : switchPorts.get(s)) {
+                NodePortTuple np = new NodePortTuple(s, p);
+                if (allLinks.get(np) == null) continue;
+                for (Link l : allLinks.get(np)) {
+                    if (linkDpidMap.containsKey(s)) {
+                        linkDpidMap.get(s).add(l);
+                    }
+                    else {
+                        linkDpidMap.put(s, new HashSet<Link>(Arrays.asList(l)));
+                    }
+                }
+            }
+        }
+
+        ArrayList<Route> A = new ArrayList<Route>();
+        ArrayList<Route> B = new ArrayList<Route>();
+
+        A.add(buildroute(new RouteId(src, dst), dijkstra(linkDpidMap, dst, linkCost, true)));
+
+        for (int k = 1; k < K; k++) {
+            for (int i = 0; i < A.get(k - 1).getPath().size() - 1; i++) {
+
+            }
+        }
+
+        return A;
     }
 
 	/*
