@@ -933,16 +933,38 @@ public class TopologyInstance {
         ArrayList<Route> A = new ArrayList<Route>();
         ArrayList<Route> B = new ArrayList<Route>();
 
+        Map<DatapathId, Set<Link>> removedNodes = new HashMap<DatapathId, Set<Link>>();
+        Map<DatapathId, Set<Link>> removedEdges = new HashMap<DatapathId, Set<Link>>();
+
         A.add(buildroute(new RouteId(src, dst), dijkstra(linkDpidMap, dst, linkCost, true)));
 
         for (int k = 1; k < K; k++) {
             for (int i = 0; i < A.get(k - 1).getPath().size() - 1; i++) {
-                DatapathId spurNode = A.get(k - 1).getPath().get(i).getNodeId();
-                Route rootPath =  buildroute(new RouteId(src,spurNode), dijkstra(linkDpidMap, spurNode, linkCost, true));
-            }
-            for(Route r : A){
-                if(rootPath == ){
+                List<NodePortTuple> path = A.get(k - 1).getPath();
+                DatapathId spurNode = path.get(i).getNodeId();
+                Route rootPath = new Route(new RouteId(path.get(0).getNodeId(), path.get(i).getNodeId()),
+                        path.subList(0, i));
 
+
+                // TODO This feels clunky. There's probably a better way.
+                for (Route r : A) {
+                    if (r.getPath().subList(0, i).equals(rootPath.getPath())) {
+                        //Remove the links that are part of the previous shortest paths which share the same root
+                        for (Link l : linkDpidMap.get(r.getPath().get(i).getNodeId())) {
+                            NodePortTuple linkSrcNpt = new NodePortTuple(l.getSrc(), l.getSrcPort());
+                            NodePortTuple linkDstNpt = new NodePortTuple(l.getDst(), l.getDstPort());
+                            if (r.getPath().get(i).equals(linkSrcNpt) || r.getPath().get(i).equals(linkDstNpt)) {
+                                removedEdges.put(r.getPath().get(i).getNodeId(), );
+                            }
+                        }
+                        //removedEdges.put(r.getPath().get(i), linkDpidMap.remove(r.getPath().get(i)));
+                    }
+                }
+
+                for (NodePortTuple npt : rootPath.getPath()) {
+                    if (!npt.getNodeId().equals(spurNode)) {
+                        removedNodes.put(npt, al.remove(npt));
+                    }
                 }
             }
         }
