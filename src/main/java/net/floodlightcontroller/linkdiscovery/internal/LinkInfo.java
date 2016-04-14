@@ -34,6 +34,7 @@ public class LinkInfo {
 	private Date lastBddpReceivedTime; /* Modified LLDP received time  */
 	private U64 currentLatency;
 	private ArrayDeque<U64> latencyHistory;
+	private int eventCount;
 	private int latencyHistoryWindow;
 	private double latencyUpdateThreshold;
 	
@@ -41,8 +42,9 @@ public class LinkInfo {
 		this.firstSeenTime = firstSeenTime;
 		this.lastLldpReceivedTime = lastLldpReceivedTime;
 		this.lastBddpReceivedTime = lastBddpReceivedTime;
-		this.currentLatency = null;
+		this.currentLatency = U64.NO_MASK;
 		this.latencyHistory = new ArrayDeque<U64>(LinkDiscoveryManager.LATENCY_HISTORY_SIZE);
+		this.eventCount = 0;
 		this.latencyHistoryWindow = LinkDiscoveryManager.LATENCY_HISTORY_SIZE;
 		this.latencyUpdateThreshold = LinkDiscoveryManager.LATENCY_UPDATE_THRESHOLD;
 	}
@@ -53,6 +55,7 @@ public class LinkInfo {
 		this.lastBddpReceivedTime = fromLinkInfo.getMulticastValidTime();
 		this.currentLatency = fromLinkInfo.currentLatency;
 		this.latencyHistory = new ArrayDeque<U64>(fromLinkInfo.getLatencyHistory());
+		this.eventCount = fromLinkInfo.eventCount;
 		this.latencyHistoryWindow = fromLinkInfo.getLatencyHistoryWindow();
 		this.latencyUpdateThreshold = fromLinkInfo.getLatencyUpdateThreshold();
 	}
@@ -67,19 +70,23 @@ public class LinkInfo {
 	 * it can determine if the port state has changed and therefore
 	 * requires the new state to be written to storage.
 	 */
-
+	
+	//returns LatencyHistory
 	private int getLatencyHistoryWindow() {
 		return latencyHistoryWindow;
 	}
 
+	//gets the threshold to add a link latency to the average
 	private double getLatencyUpdateThreshold() {
 		return latencyUpdateThreshold;
 	}
 	
+	//returns the history of Latencies
 	private ArrayDeque<U64> getLatencyHistory() {
 		return latencyHistory;
 	}
 
+	//computes average link latency
 	private U64 getLatencyHistoryAverage() {
 		if (!isLatencyHistoryFull()) {
 			return null;
@@ -94,22 +101,34 @@ public class LinkInfo {
 	}
 	
 	/**
-	 * Retrieve the current latency, and if necessary
-	 * compute and replace the current latency with an
-	 * updated latency based on the historical average.
-	 * @return the most up-to-date latency as permitted by algorithm
-	 */
+	 * Retrieve current Latency and the latest latency reading from the 
+	 * history and update if the newest is lower than the current.
+	 */ 
 	private U64 getLatency() {
-		U64 newLatency = getLatencyHistoryAverage();
-		if (newLatency != null) {
-			/* check threshold */
-			if ((((double) Math.abs(newLatency.getValue() - currentLatency.getValue())) 
-					/ (currentLatency.getValue() == 0 ? 1 : currentLatency.getValue())
-					) 
-					>= latencyUpdateThreshold) {
-				/* perform update */
-				log.debug("Updating link latency from {} to {}", currentLatency.getValue(), newLatency.getValue());
-				currentLatency = newLatency;
+		U64 newestLatency = latencyHistory.getLast();
+		if(newestLatency != null){
+			if (newestLatency.compareTo(currentLatency) < 0){
+				log.debug("Updating link latency from {} to {}", currentLatency.getValue(), newestLatency.getValue());
+				currentLatency = newestLatency;
+				eventCount = 0;
+				return currentLatency;
+			}
+			else if (newestLatency.compareTo(currentLatency) > 0){
+				if (newestLatency.subtract(currentLatency).getValue()
+						/ (currentLatency.getValue() == 0 ? 1 : currentLatency.getValue())
+						>= latencyUpdateThreshold){
+					log.debug("EVENT DETECTED: {} is higher than threshold", newestLatency.getValue());					
+					eventCount++;	
+					if(eventCount == latencyHistoryWindow){
+						log.debug("Latency Threshold Exceeded, Updating Latency from {} to {}", currentLatency.getValue(), getLatencyHistoryAverage().getValue());
+						currentLatency = getLatencyHistoryAverage();
+						eventCount = 0;
+						return currentLatency;
+					}
+				}
+				else{
+					eventCount = 0;
+				}
 			}
 		}
 		return currentLatency;
