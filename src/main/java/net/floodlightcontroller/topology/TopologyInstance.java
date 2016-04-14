@@ -938,7 +938,12 @@ public class TopologyInstance {
         for (int k = 1; k < K; k++) {
             for (int i = 0; i < A.get(k - 1).getPath().size() - 1; i++) {
                 DatapathId spurNode = A.get(k - 1).getPath().get(i).getNodeId();
-                
+                Route rootPath =  buildroute(new RouteId(src,spurNode), dijkstra(linkDpidMap, spurNode, linkCost, true));
+            }
+            for(Route r : A){
+                if(rootPath == ){
+
+                }
             }
         }
 
