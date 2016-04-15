@@ -21,7 +21,6 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.*;
@@ -171,7 +170,7 @@ public class LinkDiscoveryManagerTest extends FloodlightTestCase {
     }
 
     @Test
-    public void testLinkLatencyIncrease() throws Exception {
+    public void testLinkLatency() throws Exception {
         LinkDiscoveryManager.LATENCY_HISTORY_SIZE = 5;
         LinkDiscoveryManager.LATENCY_UPDATE_THRESHOLD = 0.25;
         
@@ -187,7 +186,7 @@ public class LinkDiscoveryManagerTest extends FloodlightTestCase {
         assertEquals(U64.of(0), info.addObservedLatency(U64.of(40)));
         assertEquals(U64.of(0), info.addObservedLatency(U64.of(40)));
         assertEquals(U64.of(0), info.addObservedLatency(U64.of(40)));
-	assertEquals(U64.of(40), info.addObservedLatency(U64.of(40)));
+        assertEquals(U64.of(40), info.addObservedLatency(U64.of(40)));
         
         /*
          * LATENCY_HISTORY_SIZE is maintained. Oldest value is evicted
@@ -205,11 +204,11 @@ public class LinkDiscoveryManagerTest extends FloodlightTestCase {
 	 * size events have occured in a row. Ealiest increase
 	 * can occur after first entry is removed.
          */
-	assertEquals(U64.of(0), info.addObservedLatency(U64.of(10)));
+        assertEquals(U64.of(0), info.addObservedLatency(U64.of(10)));
         assertEquals(U64.of(0), info.addObservedLatency(U64.of(20)));
         assertEquals(U64.of(0), info.addObservedLatency(U64.of(30)));
         assertEquals(U64.of(0), info.addObservedLatency(U64.of(40)));
-	assertEquals(U64.of(30), info.addObservedLatency(U64.of(50))); /*latency avg of last 5 entries*/
+        assertEquals(U64.of(30), info.addObservedLatency(U64.of(50))); /*latency avg of last 5 entries*/
     }
     
     @Test
@@ -510,8 +509,7 @@ public class LinkDiscoveryManagerTest extends FloodlightTestCase {
         expect(sw1.getPort(OFPort.of(EasyMock.anyInt()))).andReturn(ofpp).anyTimes();
         expect(sw1.getOFFactory()).andReturn(OFFactories.getFactory(OFVersion.OF_13)).anyTimes();
         expect(sw1.getLatency()).andReturn(U64.ZERO).anyTimes();
-        sw1.write(capture(wc));
-        expectLastCall().anyTimes();
+        expect(sw1.write(capture(wc))).andReturn(true).anyTimes();
         replay(sw1);
 
         linkDiscovery.switchActivated(sw1.getId());
