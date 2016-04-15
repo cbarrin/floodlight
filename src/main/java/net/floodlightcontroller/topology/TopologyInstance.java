@@ -42,6 +42,8 @@ public class TopologyInstance {
     public static final short LT_SH_LINK = 1;
     public static final short LT_BD_LINK = 2;
     public static final short LT_TUNNEL  = 3;
+    
+    protected static int routeMetrics = 1;
 
     public static final int MAX_LINK_WEIGHT = 10000;
     public static final int MAX_PATH_WEIGHT = Integer.MAX_VALUE - MAX_LINK_WEIGHT - 1;
@@ -660,6 +662,27 @@ public class TopologyInstance {
                 if (link == null) continue;
                 linkCost.put(link, tunnel_weight);
             }
+        }
+        
+        /* routeMetrics:
+         *  1: Hop Count
+         *  2: Link Latency
+         */
+        switch (routeMetrics){
+        	case 1: break;
+        	
+        	case 2:
+        		for (NodePortTuple npt : allLinks.keySet()) {
+        			if (allLinks.get(npt) == null) continue;
+        			for (Link link : allLinks.get(npt)) {
+        				if (link == null) continue;
+        				if((int)link.getLatency().getValue() < 0 || (int)link.getLatency().getValue() > MAX_LINK_WEIGHT)
+        					linkCost.put(link, MAX_LINK_WEIGHT);
+        				else
+        					linkCost.put(link,(int)link.getLatency().getValue());
+        			}
+        		}
+        		break;
         }
         
         Map<DatapathId, Set<Link>> linkDpidMap = new HashMap<DatapathId, Set<Link>>();
