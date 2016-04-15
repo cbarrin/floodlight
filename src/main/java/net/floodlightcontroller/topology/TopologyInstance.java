@@ -991,8 +991,25 @@ public class TopologyInstance {
                 }
                 Route spurPath = buildroute(new RouteId(spurNode, dst), dijkstra(linkDpidMap, dst, linkCost, true));
 
-                // rootPath + spurPath
-                Route totalPath = rootPath + spurPath;
+                // totalPath = rootPath + spurPath
+                List<NodePortTuple> totalNpt = new LinkedList<NodePortTuple>();
+                totalNpt.addAll(rootPath.getPath());
+                totalNpt.addAll(spurPath.getPath());
+                Route totalPath = new Route(new RouteId(src, dst), totalNpt);
+
+                B.add(totalPath);
+
+                // Restore edges and nodes to graph
+
+                if(B.isEmpty()) {
+                    break;
+                }
+
+                // sort the list from smallest to largest length
+
+
+                A.add(B.get(0));
+                B.remove(0);
             }
         }
 
