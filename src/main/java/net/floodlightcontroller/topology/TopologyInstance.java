@@ -924,17 +924,8 @@ public class TopologyInstance {
         return yens(src, dst, K);
     }
 
-    protected ArrayList<Route> yens(DatapathId src, DatapathId dst, Integer K) {
-        Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
-
-        int tunnel_weight = switchPorts.size() + 1;
-        for (NodePortTuple npt : tunnelPorts) {
-            if (allLinks.get(npt) == null) continue;
-            for (Link link : allLinks.get(npt)) {
-                if (link == null) continue;
-                linkCost.put(link, tunnel_weight);
-            }
-        }
+    protected Map<DatapathId, Set<Link>> buildLinkDpidMap(Set<DatapathId> switches, Map<DatapathId,
+            Set<OFPort>> switchPorts, Map<NodePortTuple, Set<Link>> allLinks) {
 
         Map<DatapathId, Set<Link>> linkDpidMap = new HashMap<DatapathId, Set<Link>>();
         for (DatapathId s : switches) {
@@ -953,16 +944,32 @@ public class TopologyInstance {
             }
         }
 
+        return linkDpidMap;
+    }
+
+    protected ArrayList<Route> yens(DatapathId src, DatapathId dst, Integer K) {
+        Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
+
+        int tunnel_weight = switchPorts.size() + 1;
+        for (NodePortTuple npt : tunnelPorts) {
+            if (allLinks.get(npt) == null) continue;
+            for (Link link : allLinks.get(npt)) {
+                if (link == null) continue;
+                linkCost.put(link, tunnel_weight);
+            }
+        }
+
+        Map<DatapathId, Set<Link>> linkDpidMap = buildLinkDpidMap(switches, switchPorts, allLinks);
+
+        Map<DatapathId, Set<Link>> copyOfLinkDpidMap = new HashMap<DatapathId, Set<Link>>(linkDpidMap);
+
         ArrayList<Route> A = new ArrayList<Route>();
         ArrayList<Route> B = new ArrayList<Route>();
 
-        Map<DatapathId, Set<Link>> removedNodes = new HashMap<DatapathId, Set<Link>>();
-        Map<DatapathId, Set<Link>> removedEdges = new HashMap<DatapathId, Set<Link>>();
-
-        A.add(buildroute(new RouteId(src, dst), dijkstra(linkDpidMap, dst, linkCost, true)));
+        A.add(buildroute(new RouteId(src, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true)));
 
         for (int k = 1; k < K; k++) {
-            for (int i = 0; i < A.get(k - 1).getPath().size() - 1; i++) {
+            for (int i = 0; i < A.get(k - 1).getPath().size() - 2; i = i + 2) {
                 List<NodePortTuple> path = A.get(k - 1).getPath();
                 DatapathId spurNode = path.get(i).getNodeId();
                 Route rootPath = new Route(new RouteId(path.get(0).getNodeId(), path.get(i).getNodeId()),
@@ -970,26 +977,25 @@ public class TopologyInstance {
 
 
                 // TODO This feels clunky. There's probably a better way.
+                Map<NodePortTuple, Set<Link>> allLinksCopy = new HashMap<NodePortTuple, Set<Link>>(allLinks);
                 for (Route r : A) {
                     if (r.getPath().subList(0, i).equals(rootPath.getPath())) {
                         //Remove the links that are part of the previous shortest paths which share the same root
-                        for (Link l : linkDpidMap.get(r.getPath().get(i).getNodeId())) {
-                            NodePortTuple linkSrcNpt = new NodePortTuple(l.getSrc(), l.getSrcPort());
-                            NodePortTuple linkDstNpt = new NodePortTuple(l.getDst(), l.getDstPort());
-                            if (r.getPath().get(i).equals(linkSrcNpt) || r.getPath().get(i).equals(linkDstNpt)) {
-                                removedEdges.put(r.getPath().get(i).getNodeId(), );
-                            }
-                        }
-                        //removedEdges.put(r.getPath().get(i), linkDpidMap.remove(r.getPath().get(i)));
+                        allLinksCopy.remove(r.getPath().get(i));
+                        allLinksCopy.remove(r.getPath().get(i+1));
                     }
                 }
 
+                Set<DatapathId> switchesCopy = new HashSet<DatapathId>(switches);
                 for (NodePortTuple npt : rootPath.getPath()) {
                     if (!npt.getNodeId().equals(spurNode)) {
-                        removedNodes.put(npt, al.remove(npt));
+                        switchesCopy.remove(npt.getNodeId());
                     }
                 }
-                Route spurPath = buildroute(new RouteId(spurNode, dst), dijkstra(linkDpidMap, dst, linkCost, true));
+
+                copyOfLinkDpidMap = buildLinkDpidMap(switchesCopy, switchPorts, allLinksCopy);
+
+                Route spurPath = buildroute(new RouteId(spurNode, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
 
                 // rootPath + spurPath
                 Route totalPath = rootPath + spurPath;
