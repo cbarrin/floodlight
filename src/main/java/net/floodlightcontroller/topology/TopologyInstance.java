@@ -989,6 +989,10 @@ public class TopologyInstance {
                         removedNodes.put(npt, al.remove(npt));
                     }
                 }
+                Route spurPath = buildroute(new RouteId(spurNode, dst), dijkstra(linkDpidMap, dst, linkCost, true));
+
+                // rootPath + spurPath
+                Route totalPath = rootPath + spurPath;
             }
         }
 
