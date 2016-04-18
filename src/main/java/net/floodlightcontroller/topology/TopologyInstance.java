@@ -976,7 +976,6 @@ public class TopologyInstance {
                         path.subList(0, i));
 
 
-                // TODO This feels clunky. There's probably a better way.
                 Map<NodePortTuple, Set<Link>> allLinksCopy = new HashMap<NodePortTuple, Set<Link>>(allLinks);
                 for (Route r : A) {
                     if (r.getPath().subList(0, i).equals(rootPath.getPath())) {
@@ -1006,20 +1005,45 @@ public class TopologyInstance {
                 B.add(totalPath);
 
                 // Restore edges and nodes to graph
-
-                if(B.isEmpty()) {
-                    break;
-                }
-
-                // sort the list from smallest to largest length
-
-
-                A.add(B.get(0));
-                B.remove(0);
             }
+
+            if(B.isEmpty()) {
+                break;
+            }
+
+            // sort the list from smallest to largest length
+            //B = sortRoutes(B, linkCost);
+
+            A.add(removeShortestPath(B, linkCost));
+            //A.add(B.get(0));
+            //B.remove(0);
         }
 
         return A;
+    }
+
+    protected Route removeShortestPath(ArrayList<Route> routes, Map<Link, Integer> linkCost) {
+        Route shortestPath = null;
+        Integer shortestPathCost = Integer.MAX_VALUE;
+
+        for (Route r : routes) {
+            Integer pathCost = 0;
+            for (NodePortTuple npt : r.getPath()) {
+                if (allLinks.get(npt) ==  null || linkCost.get(allLinks.get(npt).iterator().next()) == null) {
+                    // pathCost++;
+                }
+                else {
+                    pathCost += linkCost.get(allLinks.get(npt).iterator().next());
+                }
+            }
+            if (pathCost < shortestPathCost && pathCost > 0) {
+                shortestPathCost = pathCost;
+                shortestPath = r;
+            }
+        }
+
+        routes.remove(shortestPath);
+        return shortestPath;
     }
 
 	/*
