@@ -35,6 +35,7 @@ import net.floodlightcontroller.debugevent.IDebugEventService;
 import net.floodlightcontroller.debugevent.MockDebugEventService;
 import net.floodlightcontroller.linkdiscovery.ILinkDiscovery;
 import net.floodlightcontroller.linkdiscovery.ILinkDiscoveryService;
+import net.floodlightcontroller.routing.Route;
 import net.floodlightcontroller.threadpool.IThreadPoolService;
 import net.floodlightcontroller.topology.NodePortTuple;
 import net.floodlightcontroller.topology.TopologyInstance;
@@ -477,5 +478,46 @@ public class TopologyInstanceTest {
             if (topologyManager.getCurrentInstance() instanceof TopologyInstance)
                 verifyClusters(expectedClusters);
         }
+    }
+
+    @Test
+    public void testGetRoutes() throws Exception{
+        TopologyManager tm = getTopologyManager();
+
+        //Create topology from presentation
+        int [][] linkArray = {
+                {1, 1, 2, 1, DIRECT_LINK},
+                {1, 2, 4, 1, DIRECT_LINK},
+
+                {2, 2, 3, 1, DIRECT_LINK},
+
+                {3, 3, 5, 2, DIRECT_LINK},
+                {3, 4, 6, 2, DIRECT_LINK},
+
+                {4, 1, 2, 3, DIRECT_LINK},
+                {4, 2, 3, 2, DIRECT_LINK},
+                {4, 3, 5, 1, DIRECT_LINK},
+
+                {5, 3, 6, 1, DIRECT_LINK},
+        };
+        createTopologyFromLinks(linkArray);
+        topologyManager.createNewInstance();
+
+        topologyManager.getAllLinks();
+        //Call getRoute
+
+        DatapathId one = DatapathId.of(1);
+        DatapathId two = DatapathId.of(2);
+        DatapathId three = DatapathId.of(3);
+        DatapathId four = DatapathId.of(4);
+        DatapathId five = DatapathId.of(5);
+        DatapathId six = DatapathId.of(6);
+        Integer k = 1;
+
+
+        ArrayList<Route> r = getRoutes(one, six, k);
+
+        //Check if routes match expected result
+
     }
 }
