@@ -506,6 +506,8 @@ public class TopologyInstanceTest {
         topologyManager.getAllLinks();
         //Call getRoute
 
+
+
         DatapathId one = DatapathId.of(1);
         DatapathId two = DatapathId.of(2);
         DatapathId three = DatapathId.of(3);
