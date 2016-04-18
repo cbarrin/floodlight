@@ -503,8 +503,9 @@ public class TopologyInstanceTest {
         createTopologyFromLinks(linkArray);
         topologyManager.createNewInstance();
 
-        topologyManager.getAllLinks();
-        //Call getRoute
+
+        log.info("Links: {}", topologyManager.getAllLinks());
+        //Call getRoutes
 
 
         DatapathId one = DatapathId.of(1);
@@ -516,7 +517,9 @@ public class TopologyInstanceTest {
         Integer k = 1;
 
 
-        ArrayList<Route> r = getRoutes(one, six, k);
+        ArrayList<Route> r = topologyManager.getRoutes(one, six, k);
+        log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r);
+
 
         //Check if routes match expected result
 
