@@ -44,6 +44,8 @@ public class TopologyInstance {
     public static final short LT_SH_LINK = 1;
     public static final short LT_BD_LINK = 2;
     public static final short LT_TUNNEL  = 3;
+    
+    protected static int routeMetrics = 1;
 
     public static final int MAX_LINK_WEIGHT = 10000;
     public static final int MAX_PATH_WEIGHT = Integer.MAX_VALUE - MAX_LINK_WEIGHT - 1;
@@ -664,6 +666,27 @@ public class TopologyInstance {
             }
         }
         
+        /* routeMetrics:
+         *  1: Hop Count
+         *  2: Link Latency
+         */
+        switch (routeMetrics){
+        	case 1: break;
+        	
+        	case 2:
+        		for (NodePortTuple npt : allLinks.keySet()) {
+        			if (allLinks.get(npt) == null) continue;
+        			for (Link link : allLinks.get(npt)) {
+        				if (link == null) continue;
+        				if((int)link.getLatency().getValue() < 0 || (int)link.getLatency().getValue() > MAX_LINK_WEIGHT)
+        					linkCost.put(link, MAX_LINK_WEIGHT);
+        				else
+        					linkCost.put(link,(int)link.getLatency().getValue());
+        			}
+        		}
+        		break;
+        }
+        
         Map<DatapathId, Set<Link>> linkDpidMap = new HashMap<DatapathId, Set<Link>>();
         for (DatapathId s : switches) {
             if (switchPorts.get(s) == null) continue;
@@ -903,17 +926,8 @@ public class TopologyInstance {
         return yens(src, dst, K);
     }
 
-    protected ArrayList<Route> yens(DatapathId src, DatapathId dst, Integer K) {
-        Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
-
-        int tunnel_weight = switchPorts.size() + 1;
-        for (NodePortTuple npt : tunnelPorts) {
-            if (allLinks.get(npt) == null) continue;
-            for (Link link : allLinks.get(npt)) {
-                if (link == null) continue;
-                linkCost.put(link, tunnel_weight);
-            }
-        }
+    protected Map<DatapathId, Set<Link>> buildLinkDpidMap(Set<DatapathId> switches, Map<DatapathId,
+            Set<OFPort>> switchPorts, Map<NodePortTuple, Set<Link>> allLinks) {
 
         Map<DatapathId, Set<Link>> linkDpidMap = new HashMap<DatapathId, Set<Link>>();
         for (DatapathId s : switches) {
@@ -932,19 +946,106 @@ public class TopologyInstance {
             }
         }
 
-        ArrayList<Route> A = new ArrayList<Route>();
-        ArrayList<Route> B = new ArrayList<Route>();
+        return linkDpidMap;
+    }
 
-        A.add(buildroute(new RouteId(src, dst), dijkstra(linkDpidMap, dst, linkCost, true)));
+    protected ArrayList<Route> yens(DatapathId src, DatapathId dst, Integer K) {
+        Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
 
-        for (int k = 1; k < K; k++) {
-            for (int i = 0; i < A.get(k - 1).getPath().size() - 1; i++) {
-                DatapathId spurNode = A.get(k - 1).getPath().get(i).getNodeId();
-                
+        int tunnel_weight = switchPorts.size() + 1;
+        for (NodePortTuple npt : tunnelPorts) {
+            if (allLinks.get(npt) == null) continue;
+            for (Link link : allLinks.get(npt)) {
+                if (link == null) continue;
+                linkCost.put(link, tunnel_weight);
             }
         }
 
+        Map<DatapathId, Set<Link>> linkDpidMap = buildLinkDpidMap(switches, switchPorts, allLinks);
+
+        Map<DatapathId, Set<Link>> copyOfLinkDpidMap = new HashMap<DatapathId, Set<Link>>(linkDpidMap);
+
+        ArrayList<Route> A = new ArrayList<Route>();
+        ArrayList<Route> B = new ArrayList<Route>();
+
+        A.add(buildroute(new RouteId(src, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true)));
+
+        for (int k = 1; k < K; k++) {
+            for (int i = 0; i < A.get(k - 1).getPath().size() - 2; i = i + 2) {
+                List<NodePortTuple> path = A.get(k - 1).getPath();
+                DatapathId spurNode = path.get(i).getNodeId();
+                Route rootPath = new Route(new RouteId(path.get(0).getNodeId(), path.get(i).getNodeId()),
+                        path.subList(0, i));
+
+
+                Map<NodePortTuple, Set<Link>> allLinksCopy = new HashMap<NodePortTuple, Set<Link>>(allLinks);
+                for (Route r : A) {
+                    if (r.getPath().subList(0, i).equals(rootPath.getPath())) {
+                        //Remove the links that are part of the previous shortest paths which share the same root
+                        allLinksCopy.remove(r.getPath().get(i));
+                        allLinksCopy.remove(r.getPath().get(i+1));
+                    }
+                }
+
+                Set<DatapathId> switchesCopy = new HashSet<DatapathId>(switches);
+                for (NodePortTuple npt : rootPath.getPath()) {
+                    if (!npt.getNodeId().equals(spurNode)) {
+                        switchesCopy.remove(npt.getNodeId());
+                    }
+                }
+
+                copyOfLinkDpidMap = buildLinkDpidMap(switchesCopy, switchPorts, allLinksCopy);
+
+                Route spurPath = buildroute(new RouteId(spurNode, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
+
+                // totalPath = rootPath + spurPath
+                List<NodePortTuple> totalNpt = new LinkedList<NodePortTuple>();
+                totalNpt.addAll(rootPath.getPath());
+                totalNpt.addAll(spurPath.getPath());
+                Route totalPath = new Route(new RouteId(src, dst), totalNpt);
+
+                B.add(totalPath);
+
+                // Restore edges and nodes to graph
+            }
+
+            if(B.isEmpty()) {
+                break;
+            }
+
+            // sort the list from smallest to largest length
+            //B = sortRoutes(B, linkCost);
+
+            A.add(removeShortestPath(B, linkCost));
+            //A.add(B.get(0));
+            //B.remove(0);
+        }
+
         return A;
+    }
+
+    protected Route removeShortestPath(ArrayList<Route> routes, Map<Link, Integer> linkCost) {
+        Route shortestPath = null;
+        Integer shortestPathCost = Integer.MAX_VALUE;
+
+        for (Route r : routes) {
+            Integer pathCost = 0;
+            for (NodePortTuple npt : r.getPath()) {
+                if (allLinks.get(npt) ==  null || linkCost.get(allLinks.get(npt).iterator().next()) == null) {
+                    // pathCost++;
+                }
+                else {
+                    pathCost += linkCost.get(allLinks.get(npt).iterator().next());
+                }
+            }
+            if (pathCost < shortestPathCost && pathCost > 0) {
+                shortestPathCost = pathCost;
+                shortestPath = r;
+            }
+        }
+
+        routes.remove(shortestPath);
+        return shortestPath;
     }
 
 	/*

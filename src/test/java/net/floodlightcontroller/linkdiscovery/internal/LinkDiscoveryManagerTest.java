@@ -177,14 +177,16 @@ public class LinkDiscoveryManagerTest extends FloodlightTestCase {
         LinkInfo info = new LinkInfo(new Date(), new Date(), null);
 
         /*
-         * Should retain initial latency until LATENCY_HISTORY_SIZE
-         * data points are accumulated.
+         * Should only increase latency when history is full and 
+	 * size events have occured in a row. Ealiest increase
+	 * can occur after first entry is removed.
          */
         assertEquals(U64.of(0), info.addObservedLatency(U64.of(0)));
-        assertEquals(U64.of(0), info.addObservedLatency(U64.of(10)));
-        assertEquals(U64.of(0), info.addObservedLatency(U64.of(20)));
-        assertEquals(U64.of(0), info.addObservedLatency(U64.of(30)));
-        assertEquals(U64.of(20), info.addObservedLatency(U64.of(40)));
+        assertEquals(U64.of(0), info.addObservedLatency(U64.of(40)));
+        assertEquals(U64.of(0), info.addObservedLatency(U64.of(40)));
+        assertEquals(U64.of(0), info.addObservedLatency(U64.of(40)));
+        assertEquals(U64.of(0), info.addObservedLatency(U64.of(40)));
+        assertEquals(U64.of(40), info.addObservedLatency(U64.of(40)));
         
         /*
          * LATENCY_HISTORY_SIZE is maintained. Oldest value is evicted
@@ -193,9 +195,20 @@ public class LinkDiscoveryManagerTest extends FloodlightTestCase {
          * versus historical average latency differential threshold is
          * exceeded again.
          */
-        assertEquals(U64.of(20), info.addObservedLatency(U64.of(20))); /* avg = 24; diff = 4; 4/24 = 1/6 = 17% !>= 25% --> no update */
-        assertEquals(U64.of(26), info.addObservedLatency(U64.of(20))); /* avg = 26; diff = 6; 6/20 = 3/10 = 33% >= 25% --> update */
-        assertEquals(U64.of(26), info.addObservedLatency(U64.of(20))); /* avg = 26; diff = 0; 0/20 = 0/10 = 0% !>= 25% --> no update */
+        assertEquals(U64.of(20), info.addObservedLatency(U64.of(20))); /* Latency 20 < 40 */
+        assertEquals(U64.of(20), info.addObservedLatency(U64.of(40))); /* event counter !> Latency_History_Size, no update */
+        assertEquals(U64.of(0), info.addObservedLatency(U64.of(0))); /* latency 0 < 20 */
+
+	/*
+         * Should only increase latency when history is full and 
+	 * size events have occured in a row. Ealiest increase
+	 * can occur after first entry is removed.
+         */
+        assertEquals(U64.of(0), info.addObservedLatency(U64.of(10)));
+        assertEquals(U64.of(0), info.addObservedLatency(U64.of(20)));
+        assertEquals(U64.of(0), info.addObservedLatency(U64.of(30)));
+        assertEquals(U64.of(0), info.addObservedLatency(U64.of(40)));
+        assertEquals(U64.of(30), info.addObservedLatency(U64.of(50))); /*latency avg of last 5 entries*/
     }
     
     @Test
