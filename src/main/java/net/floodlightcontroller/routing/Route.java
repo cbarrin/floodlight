@@ -22,13 +22,17 @@ import java.util.List;
 
 import org.projectfloodlight.openflow.types.DatapathId;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import net.floodlightcontroller.topology.NodePortTuple;
+import net.floodlightcontroller.routing.web.RouteSerializer;
 
 /**
  * Represents a route between two switches
  *
  * @author David Erickson (daviderickson@cs.stanford.edu)
  */
+@JsonSerialize(using=RouteSerializer.class)
 public class Route implements Comparable<Route> {
     protected RouteId id;
     protected List<NodePortTuple> switchPorts;
