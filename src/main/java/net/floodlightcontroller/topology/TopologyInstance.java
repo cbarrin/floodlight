@@ -43,7 +43,7 @@ public class TopologyInstance {
     public static final short LT_BD_LINK = 2;
     public static final short LT_TUNNEL  = 3;
     
-    protected static int routeMetrics = 1;
+    private int routeMetrics = TopologyManager.routeMetrics;
 
     public static final int MAX_LINK_WEIGHT = 10000;
     public static final int MAX_PATH_WEIGHT = Integer.MAX_VALUE - MAX_LINK_WEIGHT - 1;
@@ -672,6 +672,7 @@ public class TopologyInstance {
         	case 1: break;
         	
         	case 2:
+        		log.info("Using Latency for Route Metrics");
         		for (NodePortTuple npt : allLinks.keySet()) {
         			if (allLinks.get(npt) == null) continue;
         			for (Link link : allLinks.get(npt)) {
@@ -683,6 +684,8 @@ public class TopologyInstance {
         			}
         		}
         		break;
+        		
+        	default: break;
         }
         
         Map<DatapathId, Set<Link>> linkDpidMap = new HashMap<DatapathId, Set<Link>>();
