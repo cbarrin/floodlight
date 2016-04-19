@@ -669,7 +669,9 @@ public class TopologyInstance {
          *  2: Link Latency
          */
         switch (routeMetrics){
-        	case 1: break;
+        	case 1:
+        		log.info("Using Default Hop Count for Metrics");
+        		break;
         	
         	case 2:
         		log.info("Using Latency for Route Metrics");
@@ -685,7 +687,9 @@ public class TopologyInstance {
         		}
         		break;
         		
-        	default: break;
+        	default: 
+        		log.info("Invalid Metric, Using Default Hop Count for Metrics");
+        		break;
         }
         
         Map<DatapathId, Set<Link>> linkDpidMap = new HashMap<DatapathId, Set<Link>>();
