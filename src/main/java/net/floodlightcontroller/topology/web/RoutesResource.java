@@ -16,17 +16,16 @@
 
 package net.floodlightcontroller.topology.web;
 
-import java.util.Collections;
-import java.util.List;
-
 import net.floodlightcontroller.routing.IRoutingService;
 import net.floodlightcontroller.routing.Route;
-
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.restlet.resource.Get;
 import org.restlet.resource.ServerResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.List;
 
 public class RoutesResource extends ServerResource {
 
@@ -40,6 +39,9 @@ public class RoutesResource extends ServerResource {
         
         String srcDpid = (String) getRequestAttributes().get("src-dpid");
         String dstDpid = (String) getRequestAttributes().get("dst-dpid");
+        log.warn("Tried to get: {}", srcDpid);
+        log.warn("Tried to get: {}", dstDpid);
+
 
         log.debug("Asking for routes from {} to {}", srcDpid, dstDpid);
 
