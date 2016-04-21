@@ -39,8 +39,8 @@ public class RoutesResource extends ServerResource {
         
         String srcDpid = (String) getRequestAttributes().get("src-dpid");
         String dstDpid = (String) getRequestAttributes().get("dst-dpid");
-        log.warn("Tried to get: {}", srcDpid);
-        log.warn("Tried to get: {}", dstDpid);
+        log.info("Tried to get: {}", srcDpid);
+        log.info("Tried to get: {}", dstDpid);
 
 
         log.debug("Asking for routes from {} to {}", srcDpid, dstDpid);
