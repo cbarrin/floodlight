@@ -17,19 +17,17 @@
 
 package net.floodlightcontroller.devicemanager.web;
 
-import java.io.IOException;
-
-import org.projectfloodlight.openflow.types.IPv4Address;
-import org.projectfloodlight.openflow.types.IPv6Address;
-import org.projectfloodlight.openflow.types.VlanVid;
-
-import net.floodlightcontroller.devicemanager.SwitchPort;
-import net.floodlightcontroller.devicemanager.internal.Device;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import net.floodlightcontroller.devicemanager.SwitchPort;
+import net.floodlightcontroller.devicemanager.internal.Device;
+import org.projectfloodlight.openflow.types.IPv4Address;
+import org.projectfloodlight.openflow.types.IPv6Address;
+import org.projectfloodlight.openflow.types.VlanVid;
+
+import java.io.IOException;
 
 /**
  * Serialize a device object
@@ -63,10 +61,16 @@ public class DeviceSerializer extends JsonSerializer<Device> {
             if (vlan.getVlan() >= 0)
                 jGen.writeString(vlan.toString());
         jGen.writeEndArray();
+
         jGen.writeArrayFieldStart("attachmentPoint");
         for (SwitchPort ap : device.getAttachmentPoints(true)) {
             serializer.defaultSerializeValue(ap, jGen);
         }
+        jGen.writeEndArray();
+
+        //jGen.writeObjectField("trueAttachmentPoint", device.getTrueAttachmentPoint());
+        jGen.writeArrayFieldStart("trueAttachmentPoint");
+        serializer.defaultSerializeValue(device.getTrueAttachmentPoint(), jGen);
         jGen.writeEndArray();
 
         jGen.writeNumberField("lastSeen", device.getLastSeen().getTime());

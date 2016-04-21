@@ -80,6 +80,8 @@ public class Device implements IDevice {
 	 */
 	protected volatile List<AttachmentPoint> attachmentPoints;
 
+	protected volatile AttachmentPoint trueAttachmentPoint;
+
 	// ************
 	// Constructors
 	// ************
@@ -108,6 +110,7 @@ public class Device implements IDevice {
 		this.dhcpClientName = null;
 		this.oldAPs = null;
 		this.attachmentPoints = null;
+		this.trueAttachmentPoint = null;
 
 		if (!entity.getSwitchDPID().equals(DatapathId.NONE)
 				&& !entity.getSwitchPort().equals(OFPort.ZERO)) {
@@ -123,6 +126,8 @@ public class Device implements IDevice {
 			}
 		}
 		vlanIds = computeVlandIds();
+
+		findTrueAP();
 	}
 
 	/**
@@ -158,6 +163,8 @@ public class Device implements IDevice {
 		this.entityClass = entityClass;
 		Arrays.sort(this.entities);
 		vlanIds = computeVlandIds();
+
+		findTrueAP();
 	}
 
 	/**
@@ -229,6 +236,8 @@ public class Device implements IDevice {
 
 		this.entityClass = device.entityClass;
 		vlanIds = computeVlandIds();
+
+		findTrueAP();
 	}
 
 	private VlanVid[] computeVlandIds() {
@@ -378,6 +387,35 @@ public class Device implements IDevice {
 		return dupAPs;
 	}
 
+	public SwitchPort getTrueAttachmentPoint() {
+		return new SwitchPort(trueAttachmentPoint.getSw(), trueAttachmentPoint.getPort());
+	}
+
+	protected void findTrueAP() {
+
+		if (attachmentPoints != null) {
+			for (AttachmentPoint ap : attachmentPoints) {
+				Set<OFPort> portsOnLinks = deviceManager.topology.getPortsWithLinks(ap.getSw());
+				if (portsOnLinks == null) {
+					log.error("Error looking up ports with links from topology service for switch {}", ap.getSw());
+					continue;
+				}
+
+				if (!portsOnLinks.contains(ap.getPort())) {
+					log.debug("Found 'true' attachment point of {}", ap);
+					trueAttachmentPoint = ap;
+					log.debug("New 'true attachment point {}", trueAttachmentPoint);
+					return;
+				} else {
+					log.trace("Attachment point {} was not the 'true' attachment point", ap);
+				}
+			}
+		}
+		/* This will catch case aps=null, empty, or no-true-ap */
+		log.error("Could not locate a 'true' attachment point in {}", attachmentPoints);
+
+	}
+
 	/**
 	 * Update the known attachment points. This method is called whenever
 	 * topology changes. The method returns true if there's any change to the
@@ -410,7 +448,9 @@ public class Device implements IDevice {
 				newAPList.addAll(newMap.values());
 			}
 			this.attachmentPoints = newAPList;
+			findTrueAP();
 		}
+
 
 		// Set the oldAPs to null.
 		return moved;
@@ -469,6 +509,7 @@ public class Device implements IDevice {
 			// or it may be because the switch restarted (so old APs were
 			// nullified).
 			// For now we will treat both cases as host moved.
+			findTrueAP();
 			return true;
 		}
 
@@ -480,6 +521,7 @@ public class Device implements IDevice {
 			apList.addAll(apMap.values());
 			apList.add(newAP);
 			this.attachmentPoints = apList;
+			findTrueAP();
 			return true; // new AP found on an L2 island.
 		}
 
@@ -508,8 +550,10 @@ public class Device implements IDevice {
 			oldAPList.add(oldAP);
 			this.oldAPs = oldAPList;
 			if (!topology.isInSameBroadcastDomain(oldAP.getSw(),
-					oldAP.getPort(), newAP.getSw(), newAP.getPort()))
+					oldAP.getPort(), newAP.getSw(), newAP.getPort())) {
+				findTrueAP();
 				return true; // attachment point changed.
+			}
 		} else if (oldAPFlag) {
 			// retain oldAP as is. Put the newAP in oldAPs for flagging
 			// possible duplicates.

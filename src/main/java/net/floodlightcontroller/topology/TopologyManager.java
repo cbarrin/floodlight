@@ -70,6 +70,8 @@ public class TopologyManager implements IFloodlightModule, ITopologyService, IRo
 
 	public static final String CONTEXT_TUNNEL_ENABLED =
 			"com.bigswitch.floodlight.topologymanager.tunnelEnabled";
+	
+	protected static int routeMetrics = 1; //default: route on hop count
 
 	/**
 	 * Role of the controller.
@@ -846,6 +848,17 @@ public class TopologyManager implements IFloodlightModule, ITopologyService, IRo
 		haListener = new HAListenerDelegate();
 		registerTopologyDebugCounters();
 		registerTopologyDebugEvents();
+		
+		Map<String, String> configOptions = context.getConfigParams(this);
+		try {
+			String routeMet = configOptions.get("routeMetrics");
+			if (routeMet != null) {
+				routeMetrics = Integer.parseInt(routeMet);
+			}
+		} catch (NumberFormatException e) {
+			log.warn("Error in route Metrics parameter, using default {}", routeMetrics);
+		}
+		log.info("Route Metrics set to {}", routeMetrics);
 	}
 
 	protected void registerTopologyDebugEvents() throws FloodlightModuleException {
