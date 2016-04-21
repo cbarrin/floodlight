@@ -35,6 +35,7 @@ import net.floodlightcontroller.debugevent.IDebugEventService;
 import net.floodlightcontroller.debugevent.MockDebugEventService;
 import net.floodlightcontroller.linkdiscovery.ILinkDiscovery;
 import net.floodlightcontroller.linkdiscovery.ILinkDiscoveryService;
+import net.floodlightcontroller.routing.Link;
 import net.floodlightcontroller.routing.Route;
 import net.floodlightcontroller.threadpool.IThreadPoolService;
 import net.floodlightcontroller.topology.NodePortTuple;
@@ -159,6 +160,24 @@ public class TopologyInstanceTest {
                 type = ILinkDiscovery.LinkType.TUNNEL;
 
             topologyManager.addOrUpdateLink(DatapathId.of(r[0]), OFPort.of(r[1]), DatapathId.of(r[2]), OFPort.of(r[3]), U64.ZERO, type);
+        }
+        topologyManager.createNewInstance();
+    }
+
+    public void CaseyIsABoss(int [][] linkArray, int [] latency) throws Exception {
+        ILinkDiscovery.LinkType type = ILinkDiscovery.LinkType.DIRECT_LINK;
+
+        // Use topologymanager to write this test, it will make it a lot easier.
+        for (int i = 0; i < linkArray.length; i++) {
+            int [] r = linkArray[i];
+            if (r[4] == DIRECT_LINK)
+                type= ILinkDiscovery.LinkType.DIRECT_LINK;
+            else if (r[4] == MULTIHOP_LINK)
+                type= ILinkDiscovery.LinkType.MULTIHOP_LINK;
+            else if (r[4] == TUNNEL_LINK)
+                type = ILinkDiscovery.LinkType.TUNNEL;
+
+            topologyManager.addOrUpdateLink(DatapathId.of(r[0]), OFPort.of(r[1]), DatapathId.of(r[2]), OFPort.of(r[3]), U64.of(latency[i]), type);
         }
         topologyManager.createNewInstance();
     }
@@ -484,30 +503,6 @@ public class TopologyInstanceTest {
     public void testGetRoutes() throws Exception{
         TopologyManager tm = getTopologyManager();
 
-        //Create topology from presentation
-        int [][] linkArray = {
-                {1, 1, 2, 1, DIRECT_LINK},
-                {1, 2, 4, 1, DIRECT_LINK},
-
-                {2, 2, 3, 1, DIRECT_LINK},
-
-                {3, 3, 5, 2, DIRECT_LINK},
-                {3, 4, 6, 2, DIRECT_LINK},
-
-                {4, 1, 2, 3, DIRECT_LINK},
-                {4, 2, 3, 2, DIRECT_LINK},
-                {4, 3, 5, 1, DIRECT_LINK},
-
-                {5, 3, 6, 1, DIRECT_LINK},
-        };
-        createTopologyFromLinks(linkArray);
-        topologyManager.createNewInstance();
-
-
-        log.info("Links: {}", topologyManager.getAllLinks());
-        //Call getRoutes
-
-
         DatapathId one = DatapathId.of(1);
         DatapathId two = DatapathId.of(2);
         DatapathId three = DatapathId.of(3);
@@ -516,12 +511,45 @@ public class TopologyInstanceTest {
         DatapathId six = DatapathId.of(6);
         Integer k = 1;
 
+        //Create topology from presentation
+        /*int [][] linkArray = {
+                {1, 1, 2, 1, DIRECT_LINK},
+                {1, 2, 4, 1, DIRECT_LINK},
+                {2, 2, 3, 1, DIRECT_LINK},
+                {3, 3, 5, 2, DIRECT_LINK},
+                {3, 4, 6, 2, DIRECT_LINK},
+                {4, 1, 2, 3, DIRECT_LINK},
+                {4, 2, 3, 2, DIRECT_LINK},
+                {4, 3, 5, 1, DIRECT_LINK},
+                {5, 3, 6, 1, DIRECT_LINK},
+        };
 
-        ArrayList<Route> r = topologyManager.getRoutes(one, six, k);
-        log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r);
+        int [] lat = {3,2,4,2,1,1,2,3,2};
+        CaseyIsABoss(linkArray, lat);
+        topologyManager.createNewInstance();
 
+        log.info("Links: {}", topologyManager.getAllLinks());
+        //Call getRoutes
 
+        //ArrayList<Route> r = topologyManager.getRoutes(one, six, k);
+
+        //log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r);
+
+        */
+
+        int [][] linkArray2 = {
+                {1, 1, 2, 1, DIRECT_LINK},
+                {1, 2, 3, 1, DIRECT_LINK},
+                {2, 2, 3, 2, DIRECT_LINK},
+        };
+
+        int [] lat2 = {1,50,1};
+        CaseyIsABoss(linkArray2, lat2);
+        topologyManager.createNewInstance();
+
+        ArrayList<Route> r2 = topologyManager.getRoutes(one, three, k);
+        log.info("Links: {}", topologyManager.getAllLinks());
+        log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r2);
         //Check if routes match expected result
-
     }
 }
