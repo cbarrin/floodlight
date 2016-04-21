@@ -647,6 +647,52 @@ public class TopologyInstance {
 		return ret;
 	}
 
+	private Map<Link,Integer> initLinkCostMap() {
+    		Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
+    	
+    		/* routeMetrics:
+        	 *  1: Hop Count
+         	 *  2: Link Latency
+         	*/
+        	switch (routeMetrics){
+        		case 1:
+        			log.info("Using Default Hop Count for Metrics");
+        			for (NodePortTuple npt : allLinks.keySet()) {
+        				if (allLinks.get(npt) == null) continue;
+        				for (Link link : allLinks.get(npt)) {
+        					if (link == null) continue;
+        						linkCost.put(link,1);
+        				}
+        			}
+        			return linkCost;
+        	
+        		case 2:
+        			log.info("Using Latency for Route Metrics");
+        			for (NodePortTuple npt : allLinks.keySet()) {
+        				if (allLinks.get(npt) == null) continue;
+        				for (Link link : allLinks.get(npt)) {
+        					if (link == null) continue;
+        					if((int)link.getLatency().getValue() < 0 || (int)link.getLatency().getValue() > MAX_LINK_WEIGHT)
+        						linkCost.put(link, MAX_LINK_WEIGHT);
+        					else
+        						linkCost.put(link,(int)link.getLatency().getValue());
+        				}
+        			}
+        			return linkCost;
+        		
+        		default: 
+        			log.info("Invalid Metric, Using Default Hop Count for Metrics");
+        			for (NodePortTuple npt : allLinks.keySet()) {
+        				if (allLinks.get(npt) == null) continue;
+        				for (Link link : allLinks.get(npt)) {
+        					if (link == null) continue;
+        						linkCost.put(link,1);
+        				}
+        			}
+        			return linkCost;
+        	}	
+    	}
+
 	/*
 	 * Modification of the calculateShortestPathTreeInClusters (dealing with whole topology, not individual clusters)
 	 */
@@ -663,34 +709,6 @@ public class TopologyInstance {
                 if (link == null) continue;
                 linkCost.put(link, tunnel_weight);
             }
-        }
-        
-        /* routeMetrics:
-         *  1: Hop Count
-         *  2: Link Latency
-         */
-        switch (routeMetrics){
-        	case 1:
-        		log.info("Using Default Hop Count for Metrics");
-        		break;
-        	
-        	case 2:
-        		log.info("Using Latency for Route Metrics");
-        		for (NodePortTuple npt : allLinks.keySet()) {
-        			if (allLinks.get(npt) == null) continue;
-        			for (Link link : allLinks.get(npt)) {
-        				if (link == null) continue;
-        				if((int)link.getLatency().getValue() < 0 || (int)link.getLatency().getValue() > MAX_LINK_WEIGHT)
-        					linkCost.put(link, MAX_LINK_WEIGHT);
-        				else
-        					linkCost.put(link,(int)link.getLatency().getValue());
-        			}
-        		}
-        		break;
-        		
-        	default: 
-        		log.info("Invalid Metric, Using Default Hop Count for Metrics");
-        		break;
         }
         
         Map<DatapathId, Set<Link>> linkDpidMap = new HashMap<DatapathId, Set<Link>>();
