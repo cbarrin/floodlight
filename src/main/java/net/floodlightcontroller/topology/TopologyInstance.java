@@ -1017,7 +1017,7 @@ public class TopologyInstance {
 			log.debug("k: {}", k);
 			log.debug("A(0): {}", A.get(k - 1).getPath());
 			log.debug("Path Length 'A.get(k-1).getPath().size()-2': {}", A.get(k - 1).getPath().size() - 2);
-			for (int i = 0; i < A.get(k - 1).getPath().size() - 2; i = i + 2) {
+			for (int i = 0; i <= A.get(k - 1).getPath().size() - 2; i = i + 2) {
 				log.debug("i: {}", i);
 				List<NodePortTuple> path = A.get(k - 1).getPath();
 				DatapathId spurNode = path.get(i).getNodeId();
