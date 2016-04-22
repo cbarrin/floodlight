@@ -39,9 +39,7 @@ public class RoutesResource extends ServerResource {
         
         String srcDpid = (String) getRequestAttributes().get("src-dpid");
         String dstDpid = (String) getRequestAttributes().get("dst-dpid");
-        log.info("Tried to get: {}", srcDpid);
-        log.info("Tried to get: {}", dstDpid);
-
+        Integer numRoutes = Integer.parseInt((String) getRequestAttributes().get("num-routes"));
 
         log.debug("Asking for routes from {} to {}", srcDpid, dstDpid);
 
@@ -50,7 +48,7 @@ public class RoutesResource extends ServerResource {
         
         List<Route> results = null;
         try {
-        	results = routing.getRoutes(longSrcDpid, longDstDpid, true);
+        	results = routing.getRoutes(longSrcDpid, longDstDpid, numRoutes);
         } catch (Exception e) {
         	log.warn("No routes found in request for routes from {} to {}", srcDpid, dstDpid);
         }
