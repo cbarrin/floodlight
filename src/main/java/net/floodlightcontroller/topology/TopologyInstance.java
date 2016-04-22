@@ -974,6 +974,11 @@ public class TopologyInstance {
 							linkDpidMap.put(s, new HashSet<Link>(Arrays.asList(l)));
 						}
 					}
+					else {
+						if (!linkDpidMap.containsKey(s)) {
+							linkDpidMap.put(s, null);
+						}
+					}
 				}
 			}
 		}
