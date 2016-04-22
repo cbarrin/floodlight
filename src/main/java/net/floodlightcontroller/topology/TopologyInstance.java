@@ -1068,10 +1068,14 @@ public class TopologyInstance {
 			// sort the list from smallest to largest length
 			//B = sortRoutes(B, linkCost);
 
+			log.debug("Removing shortest path from {}", B);
 			Route shortestPath = removeShortestPath(B, linkCost);
 			if (shortestPath != null) {
 				log.debug("Adding new shortest path to {} in Yen's", shortestPath);
 				A.add(shortestPath);
+			}
+			else {
+				log.debug("removeShortestPath returned {}", shortestPath);
 			}
 			//A.add(B.get(0));
 			//B.remove(0);
