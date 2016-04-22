@@ -1086,7 +1086,9 @@ public class TopologyInstance {
 	}
 
 	protected Route removeShortestPath(ArrayList<Route> routes, Map<Link, Integer> linkCost) {
+		log.debug("REMOVE SHORTEST PATH -------------");
 		if(routes == null){
+			log.debug("Routes == null");
 			return null;
 		}
 		Route shortestPath = null;
@@ -1102,13 +1104,18 @@ public class TopologyInstance {
 					pathCost += linkCost.get(allLinks.get(npt).iterator().next());
 				}
 			}
+			log.debug("Path {} with cost {}", r, pathCost);
 			if (pathCost < shortestPathCost && pathCost > 0) {
+				log.debug("New shortest path {} with cost {}", r, pathCost);
 				shortestPathCost = pathCost;
 				shortestPath = r;
 			}
 		}
 
+		log.debug("Remove {} from {}", shortestPath, routes);
 		routes.remove(shortestPath);
+
+		log.debug("Shortest path: {}", shortestPath);
 		return shortestPath;
 	}
 
