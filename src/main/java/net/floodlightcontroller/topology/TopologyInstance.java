@@ -1034,7 +1034,7 @@ public class TopologyInstance {
 
 				Map<NodePortTuple, Set<Link>> allLinksCopy = new HashMap<NodePortTuple, Set<Link>>(allLinks);
 				for (Route r : A) {
-					if (r.getPath().subList(0, i).equals(rootPath.getPath())) {
+					if (r.getPath().size() > (i + 1) && r.getPath().subList(0, i).equals(rootPath.getPath())) {
 						//Remove the links that are part of the previous shortest paths which share the same root
 						allLinksCopy.remove(r.getPath().get(i));
 						allLinksCopy.remove(r.getPath().get(i+1));
