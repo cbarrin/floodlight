@@ -1098,7 +1098,7 @@ public class TopologyInstance {
 			Integer pathCost = 0;
 			for (NodePortTuple npt : r.getPath()) {
 				if (allLinks.get(npt) ==  null || linkCost.get(allLinks.get(npt).iterator().next()) == null) {
-					// pathCost++;
+					pathCost++;
 				}
 				else {
 					pathCost += linkCost.get(allLinks.get(npt).iterator().next());
