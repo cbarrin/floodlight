@@ -590,6 +590,7 @@ public class TopologyInstance {
 		for (DatapathId node : links.keySet()) {
 			nexthoplinks.put(node, null);
 			cost.put(node, MAX_PATH_WEIGHT);
+			log.debug("Added max cost to {}", node);
 		}
 
 		HashMap<DatapathId, Boolean> seen = new HashMap<DatapathId, Boolean>();
@@ -1046,6 +1047,7 @@ public class TopologyInstance {
 				copyOfLinkDpidMap = buildLinkDpidMap(switchesCopy, switchPorts, allLinksCopy);
 
 				log.debug("About to build route.");
+				log.debug("Switches: {}", switchesCopy);
 				Route spurPath = buildroute(new RouteId(spurNode, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
 
 				// totalPath = rootPath + spurPath
