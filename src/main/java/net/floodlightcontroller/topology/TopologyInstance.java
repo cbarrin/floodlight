@@ -627,6 +627,8 @@ public class TopologyInstance {
 				}
 
 				int ndist = cdist + w; // the weight of the link, always 1 in current version of floodlight.
+				log.debug("Neighbor: {}", neighbor);
+				log.debug("Cost: {}", cost.get(neighbor));
 				if (ndist < cost.get(neighbor)) {
 					cost.put(neighbor, ndist);
 					nexthoplinks.put(neighbor, link);
