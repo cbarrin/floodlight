@@ -610,6 +610,7 @@ public class TopologyInstance {
 			seen.put(cnode, true);
 
 			log.debug("cnode {} and links {}", cnode, links.get(cnode));
+			if (links.get(cnode) == null) continue;
 			for (Link link : links.get(cnode)) {
 				DatapathId neighbor;
 
@@ -972,11 +973,6 @@ public class TopologyInstance {
 							linkDpidMap.get(s).add(l);
 						} else {
 							linkDpidMap.put(s, new HashSet<Link>(Arrays.asList(l)));
-						}
-					}
-					else {
-						if (!linkDpidMap.containsKey(s)) {
-							linkDpidMap.put(s, null);
 						}
 					}
 				}
