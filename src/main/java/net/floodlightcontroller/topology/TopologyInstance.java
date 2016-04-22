@@ -993,7 +993,14 @@ public class TopologyInstance {
 		ArrayList<Route> A = new ArrayList<Route>();
 		ArrayList<Route> B = new ArrayList<Route>();
 
-		A.add(buildroute(new RouteId(src, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true)));
+		Route newroute = buildroute(new RouteId(src, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
+
+		if (newroute != null) {
+			A.add(newroute);
+		}
+		else {
+			return A;
+		}
 
 		for (int k = 1; k < K; k++) {
 			for (int i = 0; i < A.get(k - 1).getPath().size() - 2; i = i + 2) {
@@ -1041,7 +1048,10 @@ public class TopologyInstance {
 			// sort the list from smallest to largest length
 			//B = sortRoutes(B, linkCost);
 
-			A.add(removeShortestPath(B, linkCost));
+			Route shortestPath = removeShortestPath(B, linkCost);
+			if (shortestPath != null) {
+				A.add(shortestPath);
+			}
 			//A.add(B.get(0));
 			//B.remove(0);
 		}
