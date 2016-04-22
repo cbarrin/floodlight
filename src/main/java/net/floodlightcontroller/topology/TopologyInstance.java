@@ -1060,6 +1060,9 @@ public class TopologyInstance {
 	}
 
 	protected Route removeShortestPath(ArrayList<Route> routes, Map<Link, Integer> linkCost) {
+		if(routes == null){
+			return null;
+		}
 		Route shortestPath = null;
 		Integer shortestPathCost = Integer.MAX_VALUE;
 
