@@ -598,6 +598,8 @@ public class TopologyInstance {
 		nodeq.add(new NodeDist(root, 0));
 		cost.put(root, 0);
 
+		log.debug("{}", links);
+
 		while (nodeq.peek() != null) {
 			NodeDist n = nodeq.poll();
 			DatapathId cnode = n.getNode();
@@ -607,6 +609,7 @@ public class TopologyInstance {
 			if (seen.containsKey(cnode)) continue;
 			seen.put(cnode, true);
 
+			log.debug("cnode {} and links {}", cnode, links.get(cnode));
 			for (Link link : links.get(cnode)) {
 				DatapathId neighbor;
 
