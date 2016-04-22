@@ -998,6 +998,11 @@ public class TopologyInstance {
 		ArrayList<Route> A = new ArrayList<Route>();
 		ArrayList<Route> B = new ArrayList<Route>();
 
+		if(K < 1){
+			return A;
+		}
+
+
 		Route newroute = buildroute(new RouteId(src, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
 
 		if (newroute != null) {
@@ -1068,6 +1073,9 @@ public class TopologyInstance {
 	}
 
 	protected Route removeShortestPath(ArrayList<Route> routes, Map<Link, Integer> linkCost) {
+		if(routes == null){
+			return null;
+		}
 		Route shortestPath = null;
 		Integer shortestPathCost = Integer.MAX_VALUE;
 
