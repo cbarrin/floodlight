@@ -975,6 +975,11 @@ public class TopologyInstance {
 	}
 
 	protected ArrayList<Route> yens(DatapathId src, DatapathId dst, Integer K) {
+
+		log.debug("YENS ALGORITHM -----------------");
+		log.debug("Asking for routes from {} to {}", src, dst);
+		log.debug("Asking for {} routes", K);
+
 		Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
 
 		int tunnel_weight = switchPorts.size() + 1;
@@ -999,6 +1004,7 @@ public class TopologyInstance {
 			A.add(newroute);
 		}
 		else {
+			log.debug("No routes found in Yen's!");
 			return A;
 		}
 
@@ -1042,6 +1048,7 @@ public class TopologyInstance {
 			}
 
 			if (B.isEmpty()) {
+				log.debug("B list is empty in Yen's");
 				break;
 			}
 
@@ -1050,6 +1057,7 @@ public class TopologyInstance {
 
 			Route shortestPath = removeShortestPath(B, linkCost);
 			if (shortestPath != null) {
+				log.debug("Adding new shortest path to A in Yen's");
 				A.add(shortestPath);
 			}
 			//A.add(B.get(0));

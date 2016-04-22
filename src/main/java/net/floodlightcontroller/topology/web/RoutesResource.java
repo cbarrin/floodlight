@@ -42,6 +42,7 @@ public class RoutesResource extends ServerResource {
         Integer numRoutes = Integer.parseInt((String) getRequestAttributes().get("num-routes"));
 
         log.debug("Asking for routes from {} to {}", srcDpid, dstDpid);
+        log.debug("Asking for {} routes", numRoutes);
 
         DatapathId longSrcDpid = DatapathId.of(srcDpid);
         DatapathId longDstDpid = DatapathId.of(dstDpid);
