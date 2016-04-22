@@ -51,7 +51,8 @@ public class RoutesResource extends ServerResource {
         try {
         	results = routing.getRoutes(longSrcDpid, longDstDpid, numRoutes);
         } catch (Exception e) {
-        	log.warn("No routes found in request for routes from {} to {}", srcDpid, dstDpid);
+            log.warn("{}", e);
+        	log.warn("EXCEPTION: No routes found in request for routes from {} to {}", srcDpid, dstDpid);
         }
         
         if (results == null || results.isEmpty()) {

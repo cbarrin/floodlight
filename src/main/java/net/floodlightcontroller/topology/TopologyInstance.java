@@ -1015,11 +1015,11 @@ public class TopologyInstance {
 
 		for (int k = 1; k < K; k++) {
 			log.debug("k: {}", k);
-			log.debug("A(0): {}", A.get(k - 1).getPath());
 			log.debug("Path Length 'A.get(k-1).getPath().size()-2': {}", A.get(k - 1).getPath().size() - 2);
 			for (int i = 0; i <= A.get(k - 1).getPath().size() - 2; i = i + 2) {
 				log.debug("i: {}", i);
 				List<NodePortTuple> path = A.get(k - 1).getPath();
+				log.debug("A(k-1): {}", A.get(k - 1).getPath());
 				DatapathId spurNode = path.get(i).getNodeId();
 				Route rootPath = new Route(new RouteId(path.get(0).getNodeId(), path.get(i).getNodeId()),
 						path.subList(0, i));
@@ -1043,6 +1043,7 @@ public class TopologyInstance {
 
 				copyOfLinkDpidMap = buildLinkDpidMap(switchesCopy, switchPorts, allLinksCopy);
 
+				log.debug("About to build route.");
 				Route spurPath = buildroute(new RouteId(spurNode, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
 
 				// totalPath = rootPath + spurPath
