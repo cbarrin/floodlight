@@ -1014,7 +1014,9 @@ public class TopologyInstance {
 		}
 
 		for (int k = 1; k < K; k++) {
+			log.debug("k: {}", k);
 			for (int i = 0; i < A.get(k - 1).getPath().size() - 2; i = i + 2) {
+				log.debug("i: {}", i);
 				List<NodePortTuple> path = A.get(k - 1).getPath();
 				DatapathId spurNode = path.get(i).getNodeId();
 				Route rootPath = new Route(new RouteId(path.get(0).getNodeId(), path.get(i).getNodeId()),
@@ -1047,6 +1049,10 @@ public class TopologyInstance {
 				totalNpt.addAll(spurPath.getPath());
 				Route totalPath = new Route(new RouteId(src, dst), totalNpt);
 
+				log.debug("Spur Node: {}", spurNode);
+				log.debug("Root Path: {}", rootPath);
+				log.debug("Spur Path: {}", spurPath);
+				log.debug("Total Path: {}", totalPath);
 				B.add(totalPath);
 
 				// Restore edges and nodes to graph
@@ -1062,13 +1068,14 @@ public class TopologyInstance {
 
 			Route shortestPath = removeShortestPath(B, linkCost);
 			if (shortestPath != null) {
-				log.debug("Adding new shortest path to A in Yen's");
+				log.debug("Adding new shortest path to {} in Yen's", shortestPath);
 				A.add(shortestPath);
 			}
 			//A.add(B.get(0));
 			//B.remove(0);
 		}
 
+		log.debug("END OF YEN'S --------------------");
 		return A;
 	}
 
