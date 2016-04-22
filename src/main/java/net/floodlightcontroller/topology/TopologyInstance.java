@@ -967,11 +967,12 @@ public class TopologyInstance {
 				NodePortTuple np = new NodePortTuple(s, p);
 				if (allLinks.get(np) == null) continue;
 				for (Link l : allLinks.get(np)) {
-					if (linkDpidMap.containsKey(s)) {
-						linkDpidMap.get(s).add(l);
-					}
-					else {
-						linkDpidMap.put(s, new HashSet<Link>(Arrays.asList(l)));
+					if (switches.contains(l.getSrc()) && switches.contains(l.getDst())) {
+						if (linkDpidMap.containsKey(s)) {
+							linkDpidMap.get(s).add(l);
+						} else {
+							linkDpidMap.put(s, new HashSet<Link>(Arrays.asList(l)));
+						}
 					}
 				}
 			}
