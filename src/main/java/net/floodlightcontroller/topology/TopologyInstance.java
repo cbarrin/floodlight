@@ -1053,6 +1053,10 @@ public class TopologyInstance {
 				log.debug("About to build route.");
 				log.debug("Switches: {}", switchesCopy);
 				Route spurPath = buildroute(new RouteId(spurNode, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
+				if (spurPath == null) {
+					log.debug("spurPath is null");
+					continue;
+				}
 
 				// totalPath = rootPath + spurPath
 				List<NodePortTuple> totalNpt = new LinkedList<NodePortTuple>();
