@@ -664,7 +664,7 @@ public class TopologyInstance {
         	 *  1: Hop Count(Default Metrics)
          	 *  2: Hop Count (Treat Tunnels same as link)
          	 *  3: Latency
-         	 *  4: Bandwidth
+         	 *  4: Bandwidth (In Progress)
          	*/
         	switch (routeMetrics){
         		case 1:
