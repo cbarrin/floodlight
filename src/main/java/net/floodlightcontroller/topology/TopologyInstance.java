@@ -1023,14 +1023,7 @@ public class TopologyInstance {
 
 		Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
 
-		int tunnel_weight = switchPorts.size() + 1;
-		for (NodePortTuple npt : tunnelPorts) {
-			if (allLinks.get(npt) == null) continue;
-			for (Link link : allLinks.get(npt)) {
-				if (link == null) continue;
-				linkCost.put(link, tunnel_weight);
-			}
-		}
+		linkCost = initLinkCostMap();
 
 		Map<DatapathId, Set<Link>> linkDpidMap = buildLinkDpidMap(switches, switchPorts, allLinks);
 
