@@ -729,14 +729,14 @@ public class TopologyInstance {
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
         			}
-        			log.info("Invalid Metric, Using Default Hop Count for Metrics");
-        			for (NodePortTuple npt : allLinks.keySet()) {
-        				if (allLinks.get(npt) == null) continue;
-        				for (Link link : allLinks.get(npt)) {
-        					if (link == null) continue;
-        						linkCost.put(link,1);
-        				}
-        			}
+        			log.info("Using Default Hop Count for Metrics");
+        			for (NodePortTuple npt : tunnelPorts) {
+        	            if (allLinks.get(npt) == null) continue;
+        	            for (Link link : allLinks.get(npt)) {
+        	                if (link == null) continue;
+        	                linkCost.put(link, tunnel_weight);
+        	            }
+        	        }
         			return linkCost;
         	}	
     	}
@@ -1035,7 +1035,6 @@ public class TopologyInstance {
 		if(K < 1){
 			return A;
 		}
-
 
 		Route newroute = buildroute(new RouteId(src, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
 
