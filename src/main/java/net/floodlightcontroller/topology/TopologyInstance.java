@@ -24,6 +24,7 @@ import net.floodlightcontroller.routing.Link;
 import net.floodlightcontroller.routing.Route;
 import net.floodlightcontroller.routing.RouteId;
 import net.floodlightcontroller.servicechaining.ServiceChain;
+import net.floodlightcontroller.statistics.SwitchPortBandwidth;
 import net.floodlightcontroller.util.ClusterDFS;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFPort;
@@ -649,14 +650,37 @@ public class TopologyInstance {
 
 	private Map<Link,Integer> initLinkCostMap() {
     		Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
+    		Map<NodePortTuple, SwitchPortBandwidth> linkBandwidth;
+    		int tunnel_weight = switchPorts.size() + 1;
     	
     		/* routeMetrics:
-        	 *  1: Hop Count
-         	 *  2: Link Latency
+        	 *  1: Hop Count(Default Metrics)
+         	 *  2: Hop Count (Treat Tunnels same as link)
+         	 *  3: Latency
+         	 *  4: Bandwidth
          	*/
         	switch (routeMetrics){
         		case 1:
+        			if(TopologyManager.collectStatistics == true){
+        				TopologyManager.statisticsService.collectStatistics(false);
+        				TopologyManager.collectStatistics = false;
+        			}
         			log.info("Using Default Hop Count for Metrics");
+        			for (NodePortTuple npt : tunnelPorts) {
+        	            if (allLinks.get(npt) == null) continue;
+        	            for (Link link : allLinks.get(npt)) {
+        	                if (link == null) continue;
+        	                linkCost.put(link, tunnel_weight);
+        	            }
+        	        }
+        			return linkCost;
+        		
+        		case 2:
+        			if(TopologyManager.collectStatistics == true){
+        				TopologyManager.statisticsService.collectStatistics(false);
+        				TopologyManager.collectStatistics = false;
+        			}
+        			log.info("Invalid Metric, Using Default Hop Count for Metrics");
         			for (NodePortTuple npt : allLinks.keySet()) {
         				if (allLinks.get(npt) == null) continue;
         				for (Link link : allLinks.get(npt)) {
@@ -664,9 +688,13 @@ public class TopologyInstance {
         						linkCost.put(link,1);
         				}
         			}
-        			return linkCost;
-        	
-        		case 2:
+        			return linkCost;	
+        			
+        		case 3:
+        			if(TopologyManager.collectStatistics == true){
+        				TopologyManager.statisticsService.collectStatistics(false);
+        				TopologyManager.collectStatistics = false;
+        			}
         			log.info("Using Latency for Route Metrics");
         			for (NodePortTuple npt : allLinks.keySet()) {
         				if (allLinks.get(npt) == null) continue;
@@ -680,7 +708,20 @@ public class TopologyInstance {
         			}
         			return linkCost;
         		
-        		default: 
+        		case 4:
+        			if(TopologyManager.collectStatistics == false){
+        				TopologyManager.statisticsService.collectStatistics(true);
+        				TopologyManager.collectStatistics = true;
+        			}
+        			linkBandwidth = TopologyManager.statisticsService.getBandwidthConsumption();
+        			
+        			return linkCost;
+        			
+        		default:
+        			if(TopologyManager.collectStatistics == true){
+        				TopologyManager.statisticsService.collectStatistics(false);
+        				TopologyManager.collectStatistics = false;
+        			}
         			log.info("Invalid Metric, Using Default Hop Count for Metrics");
         			for (NodePortTuple npt : allLinks.keySet()) {
         				if (allLinks.get(npt) == null) continue;
@@ -701,15 +742,7 @@ public class TopologyInstance {
     	this.broadcastNodePorts.clear();
     	this.destinationRootedFullTrees.clear();
     	Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
-        int tunnel_weight = switchPorts.size() + 1;
-		
-        for (NodePortTuple npt : tunnelPorts) {
-            if (allLinks.get(npt) == null) continue;
-            for (Link link : allLinks.get(npt)) {
-                if (link == null) continue;
-                linkCost.put(link, tunnel_weight);
-            }
-        }
+        linkCost = initLinkCostMap();
         
         Map<DatapathId, Set<Link>> linkDpidMap = new HashMap<DatapathId, Set<Link>>();
         for (DatapathId s : switches) {
