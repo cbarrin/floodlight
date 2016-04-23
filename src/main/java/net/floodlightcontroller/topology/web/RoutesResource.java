@@ -16,17 +16,16 @@
 
 package net.floodlightcontroller.topology.web;
 
-import java.util.Collections;
-import java.util.List;
-
 import net.floodlightcontroller.routing.IRoutingService;
 import net.floodlightcontroller.routing.Route;
-
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.restlet.resource.Get;
 import org.restlet.resource.ServerResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.List;
 
 public class RoutesResource extends ServerResource {
 
@@ -40,17 +39,20 @@ public class RoutesResource extends ServerResource {
         
         String srcDpid = (String) getRequestAttributes().get("src-dpid");
         String dstDpid = (String) getRequestAttributes().get("dst-dpid");
+        Integer numRoutes = Integer.parseInt((String) getRequestAttributes().get("num-routes"));
 
         log.debug("Asking for routes from {} to {}", srcDpid, dstDpid);
+        log.debug("Asking for {} routes", numRoutes);
 
         DatapathId longSrcDpid = DatapathId.of(srcDpid);
         DatapathId longDstDpid = DatapathId.of(dstDpid);
         
         List<Route> results = null;
         try {
-        	results = routing.getRoutes(longSrcDpid, longDstDpid, true);
+        	results = routing.getRoutes(longSrcDpid, longDstDpid, numRoutes);
         } catch (Exception e) {
-        	log.warn("No routes found in request for routes from {} to {}", srcDpid, dstDpid);
+            log.warn("{}", e);
+        	log.warn("EXCEPTION: No routes found in request for routes from {} to {}", srcDpid, dstDpid);
         }
         
         if (results == null || results.isEmpty()) {
