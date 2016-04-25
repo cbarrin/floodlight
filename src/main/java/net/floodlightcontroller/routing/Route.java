@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import net.floodlightcontroller.topology.NodePortTuple;
 import net.floodlightcontroller.routing.web.RouteSerializer;
+import org.projectfloodlight.openflow.types.U64;
 
 /**
  * Represents a route between two switches
@@ -37,6 +38,8 @@ public class Route implements Comparable<Route> {
     protected RouteId id;
     protected List<NodePortTuple> switchPorts;
     protected int routeCount;
+    protected int routeHopCount;
+    protected U64 routeLatency;
 
     public Route(RouteId id, List<NodePortTuple> switchPorts) {
         super();
@@ -93,6 +96,14 @@ public class Route implements Comparable<Route> {
     public int getRouteCount() {
         return routeCount;
     }
+
+    public void setRouteHopCount(int hopCount) { this.routeHopCount = hopCount; }
+
+    public int getRouteHopCount() { return this.routeHopCount; }
+
+    public void setRouteLatency(U64 latency) { this.routeLatency = latency; }
+
+    public U64 getRouteLatency() { return this.routeLatency; }
     
     @Override
     public int hashCode() {
@@ -127,7 +138,7 @@ public class Route implements Comparable<Route> {
 
     @Override
     public String toString() {
-        return "Route [id=" + id + ", switchPorts=" + switchPorts + "]";
+        return "Route [id=" + id + ", HopCount=" + routeHopCount + ", Latency=" + routeLatency + ", switchPorts=" + switchPorts + "]";
     }
 
     /**
