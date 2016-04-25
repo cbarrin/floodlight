@@ -60,6 +60,9 @@ public class RoutesResource extends ServerResource {
         } else {
         	if (log.isDebugEnabled()) {
         		log.debug("Got {} routes from {} to {}", new Object[] { results.size(), srcDpid, dstDpid });
+                log.debug("These are the routes ---------------------------");
+                log.debug("{}", results);
+                log.debug("------------------------------------------------");
         	}
         	
         	if (results.size() > 0 && results.contains(null)) {

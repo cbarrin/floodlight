@@ -138,7 +138,7 @@ public class Route implements Comparable<Route> {
 
     @Override
     public String toString() {
-        return "Route [id=" + id + ", switchPorts=" + switchPorts + "]";
+        return "Route [id=" + id + ", HopCount=" + routeHopCount + ", Latency=" + routeLatency + ", switchPorts=" + switchPorts + "]";
     }
 
     /**
