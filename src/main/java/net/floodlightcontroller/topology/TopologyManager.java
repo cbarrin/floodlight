@@ -697,7 +697,7 @@ public class TopologyManager implements IFloodlightModule, ITopologyService, IRo
 
 	@Override
 	public ArrayList<Route> getRoutes(DatapathId srcDpid, DatapathId dstDpid,
-			boolean tunnelEnabled) {
+									  boolean tunnelEnabled) {
 		// Floodlight supports single path routing now
 
 		// return single path now
@@ -708,6 +708,11 @@ public class TopologyManager implements IFloodlightModule, ITopologyService, IRo
 
 	public ArrayList<Route> getRoutes(DatapathId srcDpid, DatapathId dstDpid, Integer k) {
 		return getCurrentInstance().getRoutes(srcDpid, dstDpid, k);
+	}
+	
+	public Map<Link, Integer> getLinkCostMap(boolean tunnelEnabled) {
+		TopologyInstance ti = getCurrentInstance(tunnelEnabled);
+		return ti.initLinkCostMap();
 	}
 
 	// ******************

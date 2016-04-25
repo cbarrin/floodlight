@@ -35,6 +35,8 @@ import net.floodlightcontroller.debugevent.IDebugEventService;
 import net.floodlightcontroller.debugevent.MockDebugEventService;
 import net.floodlightcontroller.linkdiscovery.ILinkDiscovery;
 import net.floodlightcontroller.linkdiscovery.ILinkDiscoveryService;
+import net.floodlightcontroller.routing.Link;
+import net.floodlightcontroller.routing.Route;
 import net.floodlightcontroller.threadpool.IThreadPoolService;
 import net.floodlightcontroller.topology.NodePortTuple;
 import net.floodlightcontroller.topology.TopologyInstance;
@@ -158,6 +160,24 @@ public class TopologyInstanceTest {
                 type = ILinkDiscovery.LinkType.TUNNEL;
 
             topologyManager.addOrUpdateLink(DatapathId.of(r[0]), OFPort.of(r[1]), DatapathId.of(r[2]), OFPort.of(r[3]), U64.ZERO, type);
+        }
+        topologyManager.createNewInstance();
+    }
+
+    public void CaseyIsABoss(int [][] linkArray, int [] latency) throws Exception {
+        ILinkDiscovery.LinkType type = ILinkDiscovery.LinkType.DIRECT_LINK;
+
+        // Use topologymanager to write this test, it will make it a lot easier.
+        for (int i = 0; i < linkArray.length; i++) {
+            int [] r = linkArray[i];
+            if (r[4] == DIRECT_LINK)
+                type= ILinkDiscovery.LinkType.DIRECT_LINK;
+            else if (r[4] == MULTIHOP_LINK)
+                type= ILinkDiscovery.LinkType.MULTIHOP_LINK;
+            else if (r[4] == TUNNEL_LINK)
+                type = ILinkDiscovery.LinkType.TUNNEL;
+
+            topologyManager.addOrUpdateLink(DatapathId.of(r[0]), OFPort.of(r[1]), DatapathId.of(r[2]), OFPort.of(r[3]), U64.of(latency[i]), type);
         }
         topologyManager.createNewInstance();
     }
@@ -477,5 +497,103 @@ public class TopologyInstanceTest {
             if (topologyManager.getCurrentInstance() instanceof TopologyInstance)
                 verifyClusters(expectedClusters);
         }
+    }
+
+    @Test
+    public void testGetRoutes() throws Exception{
+        TopologyManager tm = getTopologyManager();
+
+        DatapathId one = DatapathId.of(1);
+        DatapathId two = DatapathId.of(2);
+        DatapathId three = DatapathId.of(3);
+        DatapathId four = DatapathId.of(4);
+        DatapathId five = DatapathId.of(5);
+        DatapathId six = DatapathId.of(6);
+
+        // 1 - hop count
+        // 3 - latency
+        TopologyManager.routeMetrics = 3;
+
+        //Get all paths based on latency. These will
+        //be used in the assertion statements below
+        int [][] linkArray = {
+                {1, 1, 2, 1, DIRECT_LINK},
+                {1, 2, 3, 1, DIRECT_LINK},
+                {2, 2, 3, 2, DIRECT_LINK},
+        };
+
+        int [] lat = {1,50,1};
+        CaseyIsABoss(linkArray, lat);
+        topologyManager.createNewInstance();
+        ArrayList<Route> lat_paths = topologyManager.getRoutes(one, three, 2);
+        log.info("Links: {}", topologyManager.getAllLinks());
+        log.info("Low Lat Road: {}", lat_paths.get(0));
+        log.info("High Lat Road: {}", lat_paths.get(1));
+
+        //Get hop count paths for use in assertion statements
+        TopologyManager.routeMetrics = 1;
+        CaseyIsABoss(linkArray, lat);
+        topologyManager.createNewInstance();
+        ArrayList<Route> hop_paths = topologyManager.getRoutes(one, three, 2);
+        log.info("Links: {}", topologyManager.getAllLinks());
+        log.info("Low Hop Road: {}", lat_paths.get(0));
+        log.info("High Hop Road: {}", lat_paths.get(1));
+
+        ///////////////////////////////////////////////////////////////////////
+        //Check if routes equal what the expected output should be
+        TopologyManager.routeMetrics = 3;
+        Integer k = 2;
+
+        int [] lat1 = {1,50,1};
+        CaseyIsABoss(linkArray, lat1);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r1 = topologyManager.getRoutes(one, three, k);
+        log.info("r1: {}", r1.get(0));
+        log.info("paths.get(0): {}", lat_paths.get(0));
+        assertTrue((r1.get(0)).equals(lat_paths.get(0)));
+        assertTrue((r1.get(1)).equals(lat_paths.get(1)));
+
+        ////////////////////////////////////////////////////////////////////////////////////
+        //Check output with bottom latency = -100.
+        TopologyManager.routeMetrics = 3;
+        k = 2;
+
+        int [] lat2 = {1,-100,1};
+        CaseyIsABoss(linkArray, lat2);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r2 = topologyManager.getRoutes(one, three, k);
+        log.info("r2: {}", r2.get(0));
+        log.info("paths.get(0): {}", lat_paths.get(0));
+        assertTrue((r2.get(0)).equals(lat_paths.get(0)));
+        assertTrue((r2.get(1)).equals(lat_paths.get(1)));
+
+
+        ///////////////////////////////////////////////////////////////////////
+        //Create topology from presentation
+        /*int [][] linkArray = {
+                {1, 1, 2, 1, DIRECT_LINK},
+                {1, 2, 4, 1, DIRECT_LINK},
+                {2, 2, 3, 1, DIRECT_LINK},
+                {3, 3, 5, 2, DIRECT_LINK},
+                {3, 4, 6, 2, DIRECT_LINK},
+                {4, 1, 2, 3, DIRECT_LINK},
+                {4, 2, 3, 2, DIRECT_LINK},
+                {4, 3, 5, 1, DIRECT_LINK},
+                {5, 3, 6, 1, DIRECT_LINK},
+        };
+
+        int [] lat = {3,2,4,2,1,1,2,3,2};
+        CaseyIsABoss(linkArray, lat);
+        topologyManager.createNewInstance();
+
+        log.info("Links: {}", topologyManager.getAllLinks());
+        //Call getRoutes
+
+        //ArrayList<Route> r = topologyManager.getRoutes(one, six, k);
+
+        //log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r);
+
+        */
+
     }
 }

@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static org.python.core.Py.Exception;
+
 /**
  * A representation of a network topology.  Used internally by
  * {@link TopologyManager}
@@ -655,7 +657,7 @@ public class TopologyInstance {
 		return ret;
 	}
 
-	private Map<Link,Integer> initLinkCostMap() {
+	protected Map<Link,Integer> initLinkCostMap() {
     		Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
     		Map<NodePortTuple, SwitchPortBandwidth> linkBandwidth;
     		int tunnel_weight = switchPorts.size() + 1;
