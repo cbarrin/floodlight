@@ -17,16 +17,15 @@
 
 package net.floodlightcontroller.routing.web;
 
-import java.io.IOException;
-
-import net.floodlightcontroller.routing.Route;
-import net.floodlightcontroller.topology.NodePortTuple;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonGenerator.Feature;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import net.floodlightcontroller.routing.Route;
+import net.floodlightcontroller.topology.NodePortTuple;
+
+import java.io.IOException;
 
 public class RouteSerializer extends JsonSerializer<Route> {
 
@@ -34,8 +33,9 @@ public class RouteSerializer extends JsonSerializer<Route> {
 	public void serialize(Route route, JsonGenerator jGen, SerializerProvider serializer)
 			throws IOException, JsonProcessingException {
 		jGen.configure(Feature.WRITE_NUMBERS_AS_STRINGS, true);
-		
-		jGen.writeNumberField("cookie", route.getId().getCookie().getValue());
+
+		jGen.writeStartObject();
+		//jGen.writeNumberField("cookie", route.getId().getCookie().getValue());
 		jGen.writeStringField("src_dpid", route.getId().getSrc().toString());
 		jGen.writeStringField("dst_dpid", route.getId().getDst().toString());
 		jGen.writeNumberField("route_count", route.getRouteCount());
@@ -48,5 +48,6 @@ public class RouteSerializer extends JsonSerializer<Route> {
 			jGen.writeEndObject();
 		}
 		jGen.writeEndArray();
+		jGen.writeEndObject();
 	}
 }

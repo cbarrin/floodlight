@@ -41,6 +41,7 @@ import net.floodlightcontroller.routing.Link;
 import net.floodlightcontroller.routing.Route;
 import net.floodlightcontroller.threadpool.IThreadPoolService;
 import net.floodlightcontroller.topology.web.TopologyWebRoutable;
+import net.floodlightcontroller.statistics.IStatisticsService;
 import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
@@ -64,6 +65,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class TopologyManager implements IFloodlightModule, ITopologyService, IRoutingService, ILinkDiscoveryListener, IOFMessageListener {
 
+	protected static IStatisticsService statisticsService;
+	
 	protected static Logger log = LoggerFactory.getLogger(TopologyManager.class);
 
 	public static final String MODULE_NAME = "topology";
@@ -72,6 +75,7 @@ public class TopologyManager implements IFloodlightModule, ITopologyService, IRo
 			"com.bigswitch.floodlight.topologymanager.tunnelEnabled";
 	
 	protected static int routeMetrics = 1; //default: route on hop count
+	protected static boolean collectStatistics = false;
 
 	/**
 	 * Role of the controller.
@@ -824,6 +828,7 @@ public class TopologyManager implements IFloodlightModule, ITopologyService, IRo
 		l.add(IDebugCounterService.class);
 		l.add(IDebugEventService.class);
 		l.add(IRestApiService.class);
+		l.add(IStatisticsService.class);
 		return l;
 	}
 
@@ -837,6 +842,7 @@ public class TopologyManager implements IFloodlightModule, ITopologyService, IRo
 		restApiService = context.getServiceImpl(IRestApiService.class);
 		debugCounterService = context.getServiceImpl(IDebugCounterService.class);
 		debugEventService = context.getServiceImpl(IDebugEventService.class);
+		statisticsService = context.getServiceImpl(IStatisticsService.class);
 
 		switchPorts = new HashMap<DatapathId, Set<OFPort>>();
 		switchPortLinks = new HashMap<NodePortTuple, Set<Link>>();

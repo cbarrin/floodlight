@@ -24,6 +24,7 @@ import net.floodlightcontroller.routing.Link;
 import net.floodlightcontroller.routing.Route;
 import net.floodlightcontroller.routing.RouteId;
 import net.floodlightcontroller.servicechaining.ServiceChain;
+import net.floodlightcontroller.statistics.SwitchPortBandwidth;
 import net.floodlightcontroller.util.ClusterDFS;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFPort;
@@ -592,12 +593,15 @@ public class TopologyInstance {
 		for (DatapathId node : links.keySet()) {
 			nexthoplinks.put(node, null);
 			cost.put(node, MAX_PATH_WEIGHT);
+			log.debug("Added max cost to {}", node);
 		}
 
 		HashMap<DatapathId, Boolean> seen = new HashMap<DatapathId, Boolean>();
 		PriorityQueue<NodeDist> nodeq = new PriorityQueue<NodeDist>();
 		nodeq.add(new NodeDist(root, 0));
 		cost.put(root, 0);
+
+		log.debug("{}", links);
 
 		while (nodeq.peek() != null) {
 			NodeDist n = nodeq.poll();
@@ -608,6 +612,8 @@ public class TopologyInstance {
 			if (seen.containsKey(cnode)) continue;
 			seen.put(cnode, true);
 
+			log.debug("cnode {} and links {}", cnode, links.get(cnode));
+			if (links.get(cnode) == null) continue;
 			for (Link link : links.get(cnode)) {
 				DatapathId neighbor;
 
@@ -629,6 +635,8 @@ public class TopologyInstance {
 				}
 
 				int ndist = cdist + w; // the weight of the link, always 1 in current version of floodlight.
+				log.debug("Neighbor: {}", neighbor);
+				log.debug("Cost: {}", cost.get(neighbor));
 				if (ndist < cost.get(neighbor)) {
 					cost.put(neighbor, ndist);
 					nexthoplinks.put(neighbor, link);
@@ -649,6 +657,92 @@ public class TopologyInstance {
 		return ret;
 	}
 
+	private Map<Link,Integer> initLinkCostMap() {
+    		Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
+    		Map<NodePortTuple, SwitchPortBandwidth> linkBandwidth;
+    		int tunnel_weight = switchPorts.size() + 1;
+    	
+    		/* routeMetrics:
+        	 *  1: Hop Count(Default Metrics)
+         	 *  2: Hop Count (Treat Tunnels same as link)
+         	 *  3: Latency
+         	 *  4: Bandwidth (In Progress)
+         	*/
+        	switch (routeMetrics){
+        		case 1:
+        			if(TopologyManager.collectStatistics == true){
+        				TopologyManager.statisticsService.collectStatistics(false);
+        				TopologyManager.collectStatistics = false;
+        			}
+        			log.info("Using Default Hop Count for Metrics");
+        			for (NodePortTuple npt : tunnelPorts) {
+        	            if (allLinks.get(npt) == null) continue;
+        	            for (Link link : allLinks.get(npt)) {
+        	                if (link == null) continue;
+        	                linkCost.put(link, tunnel_weight);
+        	            }
+        	        }
+        			return linkCost;
+        		
+        		case 2:
+        			if(TopologyManager.collectStatistics == true){
+        				TopologyManager.statisticsService.collectStatistics(false);
+        				TopologyManager.collectStatistics = false;
+        			}
+        			log.info("Invalid Metric, Using Default Hop Count for Metrics");
+        			for (NodePortTuple npt : allLinks.keySet()) {
+        				if (allLinks.get(npt) == null) continue;
+        				for (Link link : allLinks.get(npt)) {
+        					if (link == null) continue;
+        						linkCost.put(link,1);
+        				}
+        			}
+        			return linkCost;	
+        			
+        		case 3:
+        			if(TopologyManager.collectStatistics == true){
+        				TopologyManager.statisticsService.collectStatistics(false);
+        				TopologyManager.collectStatistics = false;
+        			}
+        			log.info("Using Latency for Route Metrics");
+        			for (NodePortTuple npt : allLinks.keySet()) {
+        				if (allLinks.get(npt) == null) continue;
+        				for (Link link : allLinks.get(npt)) {
+        					if (link == null) continue;
+        					if((int)link.getLatency().getValue() < 0 || (int)link.getLatency().getValue() > MAX_LINK_WEIGHT)
+        						linkCost.put(link, MAX_LINK_WEIGHT);
+        					else
+        						linkCost.put(link,(int)link.getLatency().getValue());
+        				}
+        			}
+        			return linkCost;
+        		
+        		case 4:
+        			if(TopologyManager.collectStatistics == false){
+        				TopologyManager.statisticsService.collectStatistics(true);
+        				TopologyManager.collectStatistics = true;
+        			}
+        			linkBandwidth = TopologyManager.statisticsService.getBandwidthConsumption();
+        			
+        			return linkCost;
+        			
+        		default:
+        			if(TopologyManager.collectStatistics == true){
+        				TopologyManager.statisticsService.collectStatistics(false);
+        				TopologyManager.collectStatistics = false;
+        			}
+        			log.info("Using Default Hop Count for Metrics");
+        			for (NodePortTuple npt : tunnelPorts) {
+        	            if (allLinks.get(npt) == null) continue;
+        	            for (Link link : allLinks.get(npt)) {
+        	                if (link == null) continue;
+        	                linkCost.put(link, tunnel_weight);
+        	            }
+        	        }
+        			return linkCost;
+        	}	
+    	}
+
 	/*
 	 * Modification of the calculateShortestPathTreeInClusters (dealing with whole topology, not individual clusters)
 	 */
@@ -657,43 +751,7 @@ public class TopologyInstance {
     	this.broadcastNodePorts.clear();
     	this.destinationRootedFullTrees.clear();
     	Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
-        int tunnel_weight = switchPorts.size() + 1;
-		
-        for (NodePortTuple npt : tunnelPorts) {
-            if (allLinks.get(npt) == null) continue;
-            for (Link link : allLinks.get(npt)) {
-                if (link == null) continue;
-                linkCost.put(link, tunnel_weight);
-            }
-        }
-        
-        /* routeMetrics:
-         *  1: Hop Count
-         *  2: Link Latency
-         */
-        switch (routeMetrics){
-        	case 1:
-        		log.info("Using Default Hop Count for Metrics");
-        		break;
-        	
-        	case 2:
-        		log.info("Using Latency for Route Metrics");
-        		for (NodePortTuple npt : allLinks.keySet()) {
-        			if (allLinks.get(npt) == null) continue;
-        			for (Link link : allLinks.get(npt)) {
-        				if (link == null) continue;
-        				if((int)link.getLatency().getValue() < 0 || (int)link.getLatency().getValue() > MAX_LINK_WEIGHT)
-        					linkCost.put(link, MAX_LINK_WEIGHT);
-        				else
-        					linkCost.put(link,(int)link.getLatency().getValue());
-        			}
-        		}
-        		break;
-        		
-        	default: 
-        		log.info("Invalid Metric, Using Default Hop Count for Metrics");
-        		break;
-        }
+        linkCost = initLinkCostMap();
         
         Map<DatapathId, Set<Link>> linkDpidMap = new HashMap<DatapathId, Set<Link>>();
         for (DatapathId s : switches) {
@@ -945,11 +1003,12 @@ public class TopologyInstance {
 				NodePortTuple np = new NodePortTuple(s, p);
 				if (allLinks.get(np) == null) continue;
 				for (Link l : allLinks.get(np)) {
-					if (linkDpidMap.containsKey(s)) {
-						linkDpidMap.get(s).add(l);
-					}
-					else {
-						linkDpidMap.put(s, new HashSet<Link>(Arrays.asList(l)));
+					if (switches.contains(l.getSrc()) && switches.contains(l.getDst())) {
+						if (linkDpidMap.containsKey(s)) {
+							linkDpidMap.get(s).add(l);
+						} else {
+							linkDpidMap.put(s, new HashSet<Link>(Arrays.asList(l)));
+						}
 					}
 				}
 			}
@@ -959,16 +1018,14 @@ public class TopologyInstance {
 	}
 
 	protected ArrayList<Route> yens(DatapathId src, DatapathId dst, Integer K) {
+
+		log.debug("YENS ALGORITHM -----------------");
+		log.debug("Asking for routes from {} to {}", src, dst);
+		log.debug("Asking for {} routes", K);
+
 		Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
 
-		int tunnel_weight = switchPorts.size() + 1;
-		for (NodePortTuple npt : tunnelPorts) {
-			if (allLinks.get(npt) == null) continue;
-			for (Link link : allLinks.get(npt)) {
-				if (link == null) continue;
-				linkCost.put(link, tunnel_weight);
-			}
-		}
+		linkCost = initLinkCostMap();
 
 		Map<DatapathId, Set<Link>> linkDpidMap = buildLinkDpidMap(switches, switchPorts, allLinks);
 
@@ -977,11 +1034,27 @@ public class TopologyInstance {
 		ArrayList<Route> A = new ArrayList<Route>();
 		ArrayList<Route> B = new ArrayList<Route>();
 
-		A.add(buildroute(new RouteId(src, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true)));
+		if(K < 1){
+			return A;
+		}
+
+		Route newroute = buildroute(new RouteId(src, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
+
+		if (newroute != null) {
+			A.add(newroute);
+		}
+		else {
+			log.debug("No routes found in Yen's!");
+			return A;
+		}
 
 		for (int k = 1; k < K; k++) {
-			for (int i = 0; i < A.get(k - 1).getPath().size() - 2; i = i + 2) {
+			log.debug("k: {}", k);
+			log.debug("Path Length 'A.get(k-1).getPath().size()-2': {}", A.get(k - 1).getPath().size() - 2);
+			for (int i = 0; i <= A.get(k - 1).getPath().size() - 2; i = i + 2) {
+				log.debug("i: {}", i);
 				List<NodePortTuple> path = A.get(k - 1).getPath();
+				log.debug("A(k-1): {}", A.get(k - 1).getPath());
 				DatapathId spurNode = path.get(i).getNodeId();
 				Route rootPath = new Route(new RouteId(path.get(0).getNodeId(), path.get(i).getNodeId()),
 						path.subList(0, i));
@@ -989,7 +1062,7 @@ public class TopologyInstance {
 
 				Map<NodePortTuple, Set<Link>> allLinksCopy = new HashMap<NodePortTuple, Set<Link>>(allLinks);
 				for (Route r : A) {
-					if (r.getPath().subList(0, i).equals(rootPath.getPath())) {
+					if (r.getPath().size() > (i + 1) && r.getPath().subList(0, i).equals(rootPath.getPath())) {
 						//Remove the links that are part of the previous shortest paths which share the same root
 						allLinksCopy.remove(r.getPath().get(i));
 						allLinksCopy.remove(r.getPath().get(i+1));
@@ -1005,7 +1078,13 @@ public class TopologyInstance {
 
 				copyOfLinkDpidMap = buildLinkDpidMap(switchesCopy, switchPorts, allLinksCopy);
 
+				log.debug("About to build route.");
+				log.debug("Switches: {}", switchesCopy);
 				Route spurPath = buildroute(new RouteId(spurNode, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
+				if (spurPath == null) {
+					log.debug("spurPath is null");
+					continue;
+				}
 
 				// totalPath = rootPath + spurPath
 				List<NodePortTuple> totalNpt = new LinkedList<NodePortTuple>();
@@ -1013,27 +1092,46 @@ public class TopologyInstance {
 				totalNpt.addAll(spurPath.getPath());
 				Route totalPath = new Route(new RouteId(src, dst), totalNpt);
 
+				log.debug("Spur Node: {}", spurNode);
+				log.debug("Root Path: {}", rootPath);
+				log.debug("Spur Path: {}", spurPath);
+				log.debug("Total Path: {}", totalPath);
 				B.add(totalPath);
 
 				// Restore edges and nodes to graph
 			}
 
 			if (B.isEmpty()) {
+				log.debug("B list is empty in Yen's");
 				break;
 			}
 
 			// sort the list from smallest to largest length
 			//B = sortRoutes(B, linkCost);
 
-			A.add(removeShortestPath(B, linkCost));
+			log.debug("Removing shortest path from {}", B);
+			Route shortestPath = removeShortestPath(B, linkCost);
+			if (shortestPath != null) {
+				log.debug("Adding new shortest path to {} in Yen's", shortestPath);
+				A.add(shortestPath);
+			}
+			else {
+				log.debug("removeShortestPath returned {}", shortestPath);
+			}
 			//A.add(B.get(0));
 			//B.remove(0);
 		}
 
+		log.debug("END OF YEN'S --------------------");
 		return A;
 	}
 
 	protected Route removeShortestPath(ArrayList<Route> routes, Map<Link, Integer> linkCost) {
+		log.debug("REMOVE SHORTEST PATH -------------");
+		if(routes == null){
+			log.debug("Routes == null");
+			return null;
+		}
 		Route shortestPath = null;
 		Integer shortestPathCost = Integer.MAX_VALUE;
 
@@ -1041,19 +1139,24 @@ public class TopologyInstance {
 			Integer pathCost = 0;
 			for (NodePortTuple npt : r.getPath()) {
 				if (allLinks.get(npt) ==  null || linkCost.get(allLinks.get(npt).iterator().next()) == null) {
-					// pathCost++;
+					pathCost++;
 				}
 				else {
 					pathCost += linkCost.get(allLinks.get(npt).iterator().next());
 				}
 			}
+			log.debug("Path {} with cost {}", r, pathCost);
 			if (pathCost < shortestPathCost && pathCost > 0) {
+				log.debug("New shortest path {} with cost {}", r, pathCost);
 				shortestPathCost = pathCost;
 				shortestPath = r;
 			}
 		}
 
+		log.debug("Remove {} from {}", shortestPath, routes);
 		routes.remove(shortestPath);
+
+		log.debug("Shortest path: {}", shortestPath);
 		return shortestPath;
 	}
 
