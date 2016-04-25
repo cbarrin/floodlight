@@ -554,6 +554,8 @@ public class TopologyInstanceTest {
 
         //log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r);
 
+
+
         */
 
         TopologyManager.routeMetrics = 3;
