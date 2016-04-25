@@ -949,9 +949,6 @@ public class TopologyInstance {
 				npt = new NodePortTuple(l.getDst(), l.getDstPort());
 				sPorts.addLast(npt);
 				srcId = nexthoplinks.get(srcId).getDst();
-				hopCount++;
-				latency = latency.add(l.getLatency());
-				//log.debug("hopCount: {}       latency: {}", hopCount, latency);
 			}
 		}
 		// else, no path exists, and path equals null
@@ -959,9 +956,7 @@ public class TopologyInstance {
 		Route result = null;
 		if (sPorts != null && !sPorts.isEmpty()) {
 			result = new Route(id, sPorts);
-			result.setRouteHopCount(hopCount);
-			result.setRouteLatency(latency);
-			//log.debug("Hop count increased. Latency increased. ***************");
+
 		}
 		if (log.isTraceEnabled()) {
 			log.trace("buildroute: {}", result);
@@ -1045,6 +1040,7 @@ public class TopologyInstance {
 		}
 
 		r.setRouteLatency(cost);
+		log.info("Total cost is {}", cost);
 		log.info(r.toString());
 
 	}
