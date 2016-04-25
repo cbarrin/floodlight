@@ -960,6 +960,7 @@ public class TopologyInstance {
 			result = new Route(id, sPorts);
 			result.setRouteHopCount(hopCount);
 			result.setRouteLatency(latency);
+			log.debug("Hop count increased. Latency increased. ***************");
 		}
 		if (log.isTraceEnabled()) {
 			log.trace("buildroute: {}", result);
