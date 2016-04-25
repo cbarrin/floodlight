@@ -1072,6 +1072,7 @@ public class TopologyInstance {
 		Route newroute = buildroute(new RouteId(src, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
 
 		if (newroute != null) {
+			setRouteCosts(newroute);
 			A.add(newroute);
 		}
 		else {
