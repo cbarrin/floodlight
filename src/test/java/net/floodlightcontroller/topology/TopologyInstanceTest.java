@@ -544,14 +544,8 @@ public class TopologyInstanceTest {
         TopologyManager.routeMetrics = 3;
         Integer k = 2;
 
-        int [][] linkArray1 = {
-                {1, 1, 2, 1, DIRECT_LINK},
-                {1, 2, 3, 1, DIRECT_LINK},
-                {2, 2, 3, 2, DIRECT_LINK},
-        };
-
         int [] lat1 = {1,50,1};
-        CaseyIsABoss(linkArray1, lat1);
+        CaseyIsABoss(linkArray, lat1);
         topologyManager.createNewInstance();
         ArrayList<Route> r1 = topologyManager.getRoutes(one, three, k);
         log.info("r1: {}", r1.get(0));
@@ -564,14 +558,8 @@ public class TopologyInstanceTest {
         TopologyManager.routeMetrics = 3;
         k = 2;
 
-        int [][] linkArray2 = {
-                {1, 1, 2, 1, DIRECT_LINK},
-                {1, 2, 3, 1, DIRECT_LINK},
-                {2, 2, 3, 2, DIRECT_LINK},
-        };
-
         int [] lat2 = {1,-100,1};
-        CaseyIsABoss(linkArray2, lat2);
+        CaseyIsABoss(linkArray, lat2);
         topologyManager.createNewInstance();
         ArrayList<Route> r2 = topologyManager.getRoutes(one, three, k);
         log.info("r2: {}", r2.get(0));
