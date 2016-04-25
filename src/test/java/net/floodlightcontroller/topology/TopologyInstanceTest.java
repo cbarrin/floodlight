@@ -512,7 +512,37 @@ public class TopologyInstanceTest {
 
         // 1 - hop count
         // 3 - latency
+        TopologyManager.routeMetrics = 3;
+
+        //Get all paths based on latency. These will
+        //be used in the assertion statements below
+        int [][] linkArray = {
+                {1, 1, 2, 1, DIRECT_LINK},
+                {1, 2, 3, 1, DIRECT_LINK},
+                {2, 2, 3, 2, DIRECT_LINK},
+        };
+
+        int [] lat = {1,50,1};
+        CaseyIsABoss(linkArray, lat);
+        topologyManager.createNewInstance();
+        ArrayList<Route> lat_paths = topologyManager.getRoutes(one, three, 2);
+        log.info("Links: {}", topologyManager.getAllLinks());
+        log.info("Low Lat Road: {}", lat_paths.get(0));
+        log.info("High Lat Road: {}", lat_paths.get(1));
+
+        //Get hop count paths for use in assertion statements
         TopologyManager.routeMetrics = 1;
+        CaseyIsABoss(linkArray, lat);
+        topologyManager.createNewInstance();
+        ArrayList<Route> hop_paths = topologyManager.getRoutes(one, three, 2);
+        log.info("Links: {}", topologyManager.getAllLinks());
+        log.info("Low Hop Road: {}", lat_paths.get(0));
+        log.info("High Hop Road: {}", lat_paths.get(1));
+
+        ///////////////////////////////////////////////////////////////////////
+        //Check if routes equal what the expected output should be
+        TopologyManager.routeMetrics = 3;
+        Integer k = 2;
 
         int [][] linkArray1 = {
                 {1, 1, 2, 1, DIRECT_LINK},
@@ -523,13 +553,34 @@ public class TopologyInstanceTest {
         int [] lat1 = {1,50,1};
         CaseyIsABoss(linkArray1, lat1);
         topologyManager.createNewInstance();
+        ArrayList<Route> r1 = topologyManager.getRoutes(one, three, k);
+        log.info("r1: {}", r1.get(0));
+        log.info("paths.get(0): {}", lat_paths.get(0));
+        assertTrue((r1.get(0)).equals(lat_paths.get(0)));
+        assertTrue((r1.get(1)).equals(lat_paths.get(1)));
+
+        ////////////////////////////////////////////////////////////////////////////////////
+        //Check output with bottom latency = -100.
+        TopologyManager.routeMetrics = 3;
+        k = 2;
+
+        int [][] linkArray2 = {
+                {1, 1, 2, 1, DIRECT_LINK},
+                {1, 2, 3, 1, DIRECT_LINK},
+                {2, 2, 3, 2, DIRECT_LINK},
+        };
+
+        int [] lat2 = {1,-100,1};
+        CaseyIsABoss(linkArray2, lat2);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r2 = topologyManager.getRoutes(one, three, k);
+        log.info("r2: {}", r2.get(0));
+        log.info("paths.get(0): {}", lat_paths.get(0));
+        assertTrue((r2.get(0)).equals(lat_paths.get(0)));
+        assertTrue((r2.get(1)).equals(lat_paths.get(1)));
 
 
-        ArrayList<Route> paths = topologyManager.getRoutes(one, three, 2);
-        log.info("Links: {}", topologyManager.getAllLinks());
-        log.info("Low Road: {}", paths.get(0));
-        log.info("High Road: {}", paths.get(1));
-
+        ///////////////////////////////////////////////////////////////////////
         //Create topology from presentation
         /*int [][] linkArray = {
                 {1, 1, 2, 1, DIRECT_LINK},
@@ -554,15 +605,7 @@ public class TopologyInstanceTest {
 
         //log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r);
 
-
-
-
-
         */
 
-        TopologyManager.routeMetrics = 3;
-        Integer k = 2;
-
-        //Check if routes match expected result
     }
 }
