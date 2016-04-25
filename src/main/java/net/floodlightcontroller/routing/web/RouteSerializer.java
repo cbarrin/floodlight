@@ -39,7 +39,7 @@ public class RouteSerializer extends JsonSerializer<Route> {
 		jGen.writeStringField("src_dpid", route.getId().getSrc().toString());
 		jGen.writeStringField("dst_dpid", route.getId().getDst().toString());
 		jGen.writeStringField("hop_count", new Integer(route.getRouteHopCount()).toString());
-		jGen.writeStringField("latency", route.getRouteLatency().toString());
+		//jGen.writeStringField("latency", route.getRouteLatency().toString());
 		//jGen.writeNumberField("route_count", route.getRouteCount());
 		jGen.writeFieldName("path");
 		jGen.writeStartArray();
