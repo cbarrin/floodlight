@@ -177,7 +177,13 @@ public class TopologyInstanceTest {
             else if (r[4] == TUNNEL_LINK)
                 type = ILinkDiscovery.LinkType.TUNNEL;
 
-            topologyManager.addOrUpdateLink(DatapathId.of(r[0]), OFPort.of(r[1]), DatapathId.of(r[2]), OFPort.of(r[3]), U64.of(latency[i]), type);
+            //Check for valid latency
+            int lat = latency[i];
+            if(lat < 0 || lat > 10000)
+                lat = 10000;
+
+
+            topologyManager.addOrUpdateLink(DatapathId.of(r[0]), OFPort.of(r[1]), DatapathId.of(r[2]), OFPort.of(r[3]), U64.of(lat), type);
         }
         topologyManager.createNewInstance();
     }
@@ -561,11 +567,27 @@ public class TopologyInstanceTest {
         int [] lat2 = {1,-100,1};
         CaseyIsABoss(linkArray, lat2);
         topologyManager.createNewInstance();
+
+        /*
         ArrayList<Route> r2 = topologyManager.getRoutes(one, three, k);
         log.info("r2: {}", r2.get(0));
         log.info("paths.get(0): {}", lat_paths.get(0));
         assertTrue((r2.get(0)).equals(lat_paths.get(0)));
         assertTrue((r2.get(1)).equals(lat_paths.get(1)));
+
+        ////////////////////////////////////////////////////////////////////////////////////
+        //Check output with bottom latency = 25000.
+        TopologyManager.routeMetrics = 3;
+        k = 2;
+
+        int [] lat3 = {1,25000,1};
+        CaseyIsABoss(linkArray, lat3);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r3 = topologyManager.getRoutes(one, three, k);
+        log.info("r3: {}", r3.get(0));
+        log.info("paths.get(0): {}", lat_paths.get(0));
+        assertTrue((r3.get(0)).equals(lat_paths.get(0)));
+        assertTrue((r3.get(1)).equals(lat_paths.get(1)));
 
 
         ///////////////////////////////////////////////////////////////////////
