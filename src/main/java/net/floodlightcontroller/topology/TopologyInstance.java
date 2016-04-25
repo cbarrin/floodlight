@@ -591,7 +591,7 @@ public class TopologyInstance {
 		for (DatapathId node : links.keySet()) {
 			nexthoplinks.put(node, null);
 			cost.put(node, MAX_PATH_WEIGHT);
-			log.debug("Added max cost to {}", node);
+			//log.debug("Added max cost to {}", node);
 		}
 
 		HashMap<DatapathId, Boolean> seen = new HashMap<DatapathId, Boolean>();
@@ -599,7 +599,7 @@ public class TopologyInstance {
 		nodeq.add(new NodeDist(root, 0));
 		cost.put(root, 0);
 
-		log.debug("{}", links);
+		//log.debug("{}", links);
 
 		while (nodeq.peek() != null) {
 			NodeDist n = nodeq.poll();
@@ -610,7 +610,7 @@ public class TopologyInstance {
 			if (seen.containsKey(cnode)) continue;
 			seen.put(cnode, true);
 
-			log.debug("cnode {} and links {}", cnode, links.get(cnode));
+			//log.debug("cnode {} and links {}", cnode, links.get(cnode));
 			if (links.get(cnode) == null) continue;
 			for (Link link : links.get(cnode)) {
 				DatapathId neighbor;
@@ -633,8 +633,8 @@ public class TopologyInstance {
 				}
 
 				int ndist = cdist + w; // the weight of the link, always 1 in current version of floodlight.
-				log.debug("Neighbor: {}", neighbor);
-				log.debug("Cost: {}", cost.get(neighbor));
+				//log.debug("Neighbor: {}", neighbor);
+				//log.debug("Cost: {}", cost.get(neighbor));
 				if (ndist < cost.get(neighbor)) {
 					cost.put(neighbor, ndist);
 					nexthoplinks.put(neighbor, link);
@@ -1023,9 +1023,9 @@ public class TopologyInstance {
 
 	protected ArrayList<Route> yens(DatapathId src, DatapathId dst, Integer K) {
 
-		log.debug("YENS ALGORITHM -----------------");
-		log.debug("Asking for routes from {} to {}", src, dst);
-		log.debug("Asking for {} routes", K);
+		//log.debug("YENS ALGORITHM -----------------");
+		//log.debug("Asking for routes from {} to {}", src, dst);
+		//log.debug("Asking for {} routes", K);
 
 		// Find link costs
 		Map<Link, Integer> linkCost = initLinkCostMap();
@@ -1051,19 +1051,19 @@ public class TopologyInstance {
 			A.add(newroute);
 		}
 		else {
-			log.debug("No routes found in Yen's!");
+			//log.debug("No routes found in Yen's!");
 			return A;
 		}
 
 		// Loop through K - 1 times to get other possible shortest paths
 		for (int k = 1; k < K; k++) {
-			log.debug("k: {}", k);
-			log.debug("Path Length 'A.get(k-1).getPath().size()-2': {}", A.get(k - 1).getPath().size() - 2);
+			//log.debug("k: {}", k);
+			//log.debug("Path Length 'A.get(k-1).getPath().size()-2': {}", A.get(k - 1).getPath().size() - 2);
 			// Iterate through i, which is the number of links in the most recent path added to A
 			for (int i = 0; i <= A.get(k - 1).getPath().size() - 2; i = i + 2) {
-				log.debug("i: {}", i);
+				//log.debug("i: {}", i);
 				List<NodePortTuple> path = A.get(k - 1).getPath();
-				log.debug("A(k-1): {}", A.get(k - 1).getPath());
+				//log.debug("A(k-1): {}", A.get(k - 1).getPath());
 				// The spur node is the point in the topology where Dijkstra's is called again to find another path
 				DatapathId spurNode = path.get(i).getNodeId();
 				// rootPath is the path along the previous shortest path that is before the spur node
@@ -1092,12 +1092,12 @@ public class TopologyInstance {
 				// Builds the new topology without the parts we want removed
 				copyOfLinkDpidMap = buildLinkDpidMap(switchesCopy, switchPorts, allLinksCopy);
 
-				log.debug("About to build route.");
-				log.debug("Switches: {}", switchesCopy);
+				//log.debug("About to build route.");
+				//log.debug("Switches: {}", switchesCopy);
 				// Uses Dijkstra's to try to find a shortest path from the spur node to the destination
 				Route spurPath = buildroute(new RouteId(spurNode, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
 				if (spurPath == null) {
-					log.debug("spurPath is null");
+					//log.debug("spurPath is null");
 					continue;
 				}
 
@@ -1107,10 +1107,10 @@ public class TopologyInstance {
 				totalNpt.addAll(spurPath.getPath());
 				Route totalPath = new Route(new RouteId(src, dst), totalNpt);
 
-				log.debug("Spur Node: {}", spurNode);
-				log.debug("Root Path: {}", rootPath);
-				log.debug("Spur Path: {}", spurPath);
-				log.debug("Total Path: {}", totalPath);
+				//log.debug("Spur Node: {}", spurNode);
+				//log.debug("Root Path: {}", rootPath);
+				//log.debug("Spur Path: {}", spurPath);
+				//log.debug("Total Path: {}", totalPath);
 				// Adds the new path into B
 				B.add(totalPath);
 
@@ -1120,23 +1120,23 @@ public class TopologyInstance {
 			// If we get out of the loop and there isn't a path in B to add to A, all possible paths have been
 			// found and return A
 			if (B.isEmpty()) {
-				log.debug("B list is empty in Yen's");
+				//log.debug("B list is empty in Yen's");
 				break;
 			}
 
-			log.debug("Removing shortest path from {}", B);
+			//log.debug("Removing shortest path from {}", B);
 			// Find the shortest path in B, remove it, and put it in A
 			Route shortestPath = removeShortestPath(B, linkCost);
 			if (shortestPath != null) {
-				log.debug("Adding new shortest path to {} in Yen's", shortestPath);
+				//log.debug("Adding new shortest path to {} in Yen's", shortestPath);
 				A.add(shortestPath);
 			}
 			else {
-				log.debug("removeShortestPath returned {}", shortestPath);
+				//log.debug("removeShortestPath returned {}", shortestPath);
 			}
 		}
 
-		log.debug("END OF YEN'S --------------------");
+		//log.debug("END OF YEN'S --------------------");
 		return A;
 	}
 
