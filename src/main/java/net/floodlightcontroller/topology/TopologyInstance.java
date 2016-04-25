@@ -922,6 +922,8 @@ public class TopologyInstance {
 		DatapathId dstId = id.getDst();
 		//set of NodePortTuples on the route
 		LinkedList<NodePortTuple> sPorts = new LinkedList<NodePortTuple>();
+		int hopCount = 0;
+		U64 latency = U64.ZERO;
 
 		if (tree == null) return null;
 
@@ -947,6 +949,8 @@ public class TopologyInstance {
 				npt = new NodePortTuple(l.getDst(), l.getDstPort());
 				sPorts.addLast(npt);
 				srcId = nexthoplinks.get(srcId).getDst();
+				hopCount++;
+				latency = latency.add(l.getLatency());
 			}
 		}
 		// else, no path exists, and path equals null
@@ -954,6 +958,8 @@ public class TopologyInstance {
 		Route result = null;
 		if (sPorts != null && !sPorts.isEmpty()) {
 			result = new Route(id, sPorts);
+			result.setRouteHopCount(hopCount);
+			result.setRouteLatency(latency);
 		}
 		if (log.isTraceEnabled()) {
 			log.trace("buildroute: {}", result);
@@ -1021,9 +1027,7 @@ public class TopologyInstance {
 		log.debug("Asking for routes from {} to {}", src, dst);
 		log.debug("Asking for {} routes", K);
 
-		Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
-
-		linkCost = initLinkCostMap();
+		Map<Link, Integer> linkCost = initLinkCostMap();
 
 		Map<DatapathId, Set<Link>> linkDpidMap = buildLinkDpidMap(switches, switchPorts, allLinks);
 
