@@ -1027,6 +1027,7 @@ public class TopologyInstance {
 		log.debug("Asking for routes from {} to {}", src, dst);
 		log.debug("Asking for {} routes", K);
 
+		// Find link costs
 		Map<Link, Integer> linkCost = initLinkCostMap();
 
 		Map<DatapathId, Set<Link>> linkDpidMap = buildLinkDpidMap(switches, switchPorts, allLinks);
