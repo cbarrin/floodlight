@@ -1030,18 +1030,18 @@ public class TopologyInstance {
 			OFPort srcPort = r.getPath().get(i).getPortId();
 			OFPort dstPort = r.getPath().get(i + 1).getPortId();
 			for (Link l : allLinks.get(r.getPath().get(i))) {
-				log.debug("Iterating through the links");
+				//log.debug("Iterating through the links");
 				if (l.getSrc().equals(src) && l.getDst().equals(dst) &&
 						l.getSrcPort().equals(srcPort) && l.getDstPort().equals(dstPort)) {
-					log.info("Matching link found: {}", l);
+					//log.info("Matching link found: {}", l);
 					cost = cost.add(l.getLatency());
 				}
 			}
 		}
 
 		r.setRouteLatency(cost);
-		log.info("Total cost is {}", cost);
-		log.info(r.toString());
+		//log.info("Total cost is {}", cost);
+		//log.info(r.toString());
 
 	}
 
@@ -1076,17 +1076,17 @@ public class TopologyInstance {
 			A.add(newroute);
 		}
 		else {
-			//log.debug("No routes found in Yen's!");
+			log.info("No routes found in Yen's!");
 			return A;
 		}
 
 		// Loop through K - 1 times to get other possible shortest paths
 		for (int k = 1; k < K; k++) {
-			//log.debug("k: {}", k);
+			log.info("k: {}", k);
 			//log.debug("Path Length 'A.get(k-1).getPath().size()-2': {}", A.get(k - 1).getPath().size() - 2);
 			// Iterate through i, which is the number of links in the most recent path added to A
 			for (int i = 0; i <= A.get(k - 1).getPath().size() - 2; i = i + 2) {
-				//log.debug("i: {}", i);
+				log.info("i: {}", i);
 				List<NodePortTuple> path = A.get(k - 1).getPath();
 				//log.debug("A(k-1): {}", A.get(k - 1).getPath());
 				// The spur node is the point in the topology where Dijkstra's is called again to find another path
@@ -1133,10 +1133,10 @@ public class TopologyInstance {
 				Route totalPath = new Route(new RouteId(src, dst), totalNpt);
 				setRouteCosts(totalPath);
 
-				//log.debug("Spur Node: {}", spurNode);
-				//log.debug("Root Path: {}", rootPath);
-				//log.debug("Spur Path: {}", spurPath);
-				//log.debug("Total Path: {}", totalPath);
+				log.info("Spur Node: {}", spurNode);
+				log.info("Root Path: {}", rootPath);
+				log.info("Spur Path: {}", spurPath);
+				log.info("Total Path: {}", totalPath);
 				// Adds the new path into B
 				B.add(totalPath);
 
@@ -1156,6 +1156,7 @@ public class TopologyInstance {
 			if (shortestPath != null) {
 				//log.debug("Adding new shortest path to {} in Yen's", shortestPath);
 				A.add(shortestPath);
+				log.info("A: {}", A);
 			}
 			else {
 				//log.debug("removeShortestPath returned {}", shortestPath);
