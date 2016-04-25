@@ -951,7 +951,7 @@ public class TopologyInstance {
 				srcId = nexthoplinks.get(srcId).getDst();
 				hopCount++;
 				latency = latency.add(l.getLatency());
-				log.debug("hopCount: {}       latency: {}", hopCount, latency);
+				//log.debug("hopCount: {}       latency: {}", hopCount, latency);
 			}
 		}
 		// else, no path exists, and path equals null
@@ -961,7 +961,7 @@ public class TopologyInstance {
 			result = new Route(id, sPorts);
 			result.setRouteHopCount(hopCount);
 			result.setRouteLatency(latency);
-			log.debug("Hop count increased. Latency increased. ***************");
+			//log.debug("Hop count increased. Latency increased. ***************");
 		}
 		if (log.isTraceEnabled()) {
 			log.trace("buildroute: {}", result);
@@ -1038,13 +1038,14 @@ public class TopologyInstance {
 				log.debug("Iterating through the links");
 				if (l.getSrc().equals(src) && l.getDst().equals(dst) &&
 						l.getSrcPort().equals(srcPort) && l.getDstPort().equals(dstPort)) {
-					log.debug("Matching link found: {}", l);
+					log.info("Matching link found: {}", l);
 					cost.add(l.getLatency());
 				}
 			}
 		}
 
 		r.setRouteLatency(cost);
+		log.info(r.toString());
 
 	}
 
