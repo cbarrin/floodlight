@@ -657,7 +657,7 @@ public class TopologyInstance {
 		return ret;
 	}
 
-	private Map<Link,Integer> initLinkCostMap() {
+	protected Map<Link,Integer> initLinkCostMap() {
     		Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
     		Map<NodePortTuple, SwitchPortBandwidth> linkBandwidth;
     		int tunnel_weight = switchPorts.size() + 1;
