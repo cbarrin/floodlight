@@ -1023,6 +1023,29 @@ public class TopologyInstance {
 		return linkDpidMap;
 	}
 
+	protected void setRouteCosts(Route r) {
+		U64 cost = U64.ZERO;
+
+		// Set number of hops. Assuming the list of NPTs is always even.
+		r.setRouteHopCount(r.getPath().size()/2);
+
+		for (int i = 0; i <= r.getPath().size() - 2; i = i + 2) {
+			DatapathId src = r.getPath().get(i).getNodeId();
+			DatapathId dst = r.getPath().get(i + 1).getNodeId();
+			OFPort srcPort = r.getPath().get(i).getPortId();
+			OFPort dstPort = r.getPath().get(i + 1).getPortId();
+			for (Link l : allLinks.get(r.getPath().get(i))) {
+				if (l.getSrc() == src && l.getDst() == dst &&
+						l.getSrcPort() == srcPort && l.getDstPort() == dstPort) {
+					cost.add(l.getLatency());
+				}
+			}
+		}
+
+		r.setRouteLatency(cost);
+
+	}
+
 	protected ArrayList<Route> yens(DatapathId src, DatapathId dst, Integer K) {
 
 		//log.debug("YENS ALGORITHM -----------------");
@@ -1108,6 +1131,7 @@ public class TopologyInstance {
 				totalNpt.addAll(rootPath.getPath());
 				totalNpt.addAll(spurPath.getPath());
 				Route totalPath = new Route(new RouteId(src, dst), totalNpt);
+				setRouteCosts(totalPath);
 
 				//log.debug("Spur Node: {}", spurNode);
 				//log.debug("Root Path: {}", rootPath);
