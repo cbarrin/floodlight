@@ -1034,7 +1034,7 @@ public class TopologyInstance {
 				if (l.getSrc().equals(src) && l.getDst().equals(dst) &&
 						l.getSrcPort().equals(srcPort) && l.getDstPort().equals(dstPort)) {
 					log.info("Matching link found: {}", l);
-					cost.add(l.getLatency());
+					cost = cost.add(l.getLatency());
 				}
 			}
 		}
