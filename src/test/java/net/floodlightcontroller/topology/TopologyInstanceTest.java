@@ -509,11 +509,26 @@ public class TopologyInstanceTest {
         DatapathId four = DatapathId.of(4);
         DatapathId five = DatapathId.of(5);
         DatapathId six = DatapathId.of(6);
-        Integer k = 1;
 
         // 1 - hop count
         // 3 - latency
         TopologyManager.routeMetrics = 1;
+
+        int [][] linkArray1 = {
+                {1, 1, 2, 1, DIRECT_LINK},
+                {1, 2, 3, 1, DIRECT_LINK},
+                {2, 2, 3, 2, DIRECT_LINK},
+        };
+
+        int [] lat1 = {1,50,1};
+        CaseyIsABoss(linkArray1, lat1);
+        topologyManager.createNewInstance();
+
+
+        ArrayList<Route> paths = topologyManager.getRoutes(one, three, 2);
+        log.info("Links: {}", topologyManager.getAllLinks());
+        log.info("Low Road: {}", paths.get(0));
+        log.info("High Road: {}", paths.get(1));
 
         //Create topology from presentation
         /*int [][] linkArray = {
@@ -541,19 +556,8 @@ public class TopologyInstanceTest {
 
         */
 
-        int [][] linkArray2 = {
-                {1, 1, 2, 1, DIRECT_LINK},
-                {1, 2, 3, 1, DIRECT_LINK},
-                {2, 2, 3, 2, DIRECT_LINK},
-        };
-
-        int [] lat2 = {1,50,1};
-        CaseyIsABoss(linkArray2, lat2);
-        topologyManager.createNewInstance();
-
-        ArrayList<Route> r2 = topologyManager.getRoutes(one, three, k);
-        log.info("Links: {}", topologyManager.getAllLinks());
-        log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r2);
+        TopologyManager.routeMetrics = 3;
+        Integer k = 2;
 
         //Check if routes match expected result
     }
