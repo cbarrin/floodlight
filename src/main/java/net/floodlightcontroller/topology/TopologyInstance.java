@@ -949,9 +949,6 @@ public class TopologyInstance {
 				npt = new NodePortTuple(l.getDst(), l.getDstPort());
 				sPorts.addLast(npt);
 				srcId = nexthoplinks.get(srcId).getDst();
-				hopCount++;
-				latency = latency.add(l.getLatency());
-				log.debug("hopCount: {}       latency: {}", hopCount, latency);
 			}
 		}
 		// else, no path exists, and path equals null
@@ -959,9 +956,7 @@ public class TopologyInstance {
 		Route result = null;
 		if (sPorts != null && !sPorts.isEmpty()) {
 			result = new Route(id, sPorts);
-			result.setRouteHopCount(hopCount);
-			result.setRouteLatency(latency);
-			log.debug("Hop count increased. Latency increased. ***************");
+
 		}
 		if (log.isTraceEnabled()) {
 			log.trace("buildroute: {}", result);
@@ -1038,13 +1033,15 @@ public class TopologyInstance {
 				log.debug("Iterating through the links");
 				if (l.getSrc().equals(src) && l.getDst().equals(dst) &&
 						l.getSrcPort().equals(srcPort) && l.getDstPort().equals(dstPort)) {
-					log.debug("Matching link found: {}", l);
-					cost.add(l.getLatency());
+					log.info("Matching link found: {}", l);
+					cost = cost.add(l.getLatency());
 				}
 			}
 		}
 
 		r.setRouteLatency(cost);
+		log.info("Total cost is {}", cost);
+		log.info(r.toString());
 
 	}
 
@@ -1075,6 +1072,7 @@ public class TopologyInstance {
 		Route newroute = buildroute(new RouteId(src, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
 
 		if (newroute != null) {
+			setRouteCosts(newroute);
 			A.add(newroute);
 		}
 		else {
