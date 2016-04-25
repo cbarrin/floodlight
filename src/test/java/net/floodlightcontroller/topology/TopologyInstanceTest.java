@@ -511,6 +511,10 @@ public class TopologyInstanceTest {
         DatapathId six = DatapathId.of(6);
         Integer k = 1;
 
+        // 1 - hop count
+        // 3 - latency
+        TopologyManager.routeMetrics = 1;
+
         //Create topology from presentation
         /*int [][] linkArray = {
                 {1, 1, 2, 1, DIRECT_LINK},
@@ -550,6 +554,7 @@ public class TopologyInstanceTest {
         ArrayList<Route> r2 = topologyManager.getRoutes(one, three, k);
         log.info("Links: {}", topologyManager.getAllLinks());
         log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r2);
+
         //Check if routes match expected result
     }
 }
