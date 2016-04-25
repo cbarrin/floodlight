@@ -1036,8 +1036,8 @@ public class TopologyInstance {
 			OFPort dstPort = r.getPath().get(i + 1).getPortId();
 			for (Link l : allLinks.get(r.getPath().get(i))) {
 				log.debug("Iterating through the links");
-				if (l.getSrc() == src && l.getDst() == dst &&
-						l.getSrcPort() == srcPort && l.getDstPort() == dstPort) {
+				if (l.getSrc().equals(src) && l.getDst().equals(dst) &&
+						l.getSrcPort().equals(srcPort) && l.getDstPort().equals(dstPort)) {
 					log.debug("Matching link found: {}", l);
 					cost.add(l.getLatency());
 				}
