@@ -951,6 +951,7 @@ public class TopologyInstance {
 				srcId = nexthoplinks.get(srcId).getDst();
 				hopCount++;
 				latency = latency.add(l.getLatency());
+				log.debug("hopCount: {}       latency: {}", hopCount, latency);
 			}
 		}
 		// else, no path exists, and path equals null
