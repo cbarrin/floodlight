@@ -1027,19 +1027,24 @@ public class TopologyInstance {
 		log.debug("Asking for routes from {} to {}", src, dst);
 		log.debug("Asking for {} routes", K);
 
+		// Find link costs
 		Map<Link, Integer> linkCost = initLinkCostMap();
 
 		Map<DatapathId, Set<Link>> linkDpidMap = buildLinkDpidMap(switches, switchPorts, allLinks);
 
 		Map<DatapathId, Set<Link>> copyOfLinkDpidMap = new HashMap<DatapathId, Set<Link>>(linkDpidMap);
 
+		// A is the list of shortest paths. The number in the list at the end should be less than or equal to K
+		// B is the list of possible shortest paths found in this function.
 		ArrayList<Route> A = new ArrayList<Route>();
 		ArrayList<Route> B = new ArrayList<Route>();
 
+		// The number of routes requested should never be less than 1.
 		if(K < 1){
 			return A;
 		}
 
+		// Using Dijkstra's to find the shortest path, which will also be the first path in A
 		Route newroute = buildroute(new RouteId(src, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
 
 		if (newroute != null) {
@@ -1050,27 +1055,33 @@ public class TopologyInstance {
 			return A;
 		}
 
+		// Loop through K - 1 times to get other possible shortest paths
 		for (int k = 1; k < K; k++) {
 			log.debug("k: {}", k);
 			log.debug("Path Length 'A.get(k-1).getPath().size()-2': {}", A.get(k - 1).getPath().size() - 2);
+			// Iterate through i, which is the number of links in the most recent path added to A
 			for (int i = 0; i <= A.get(k - 1).getPath().size() - 2; i = i + 2) {
 				log.debug("i: {}", i);
 				List<NodePortTuple> path = A.get(k - 1).getPath();
 				log.debug("A(k-1): {}", A.get(k - 1).getPath());
+				// The spur node is the point in the topology where Dijkstra's is called again to find another path
 				DatapathId spurNode = path.get(i).getNodeId();
+				// rootPath is the path along the previous shortest path that is before the spur node
 				Route rootPath = new Route(new RouteId(path.get(0).getNodeId(), path.get(i).getNodeId()),
 						path.subList(0, i));
 
 
 				Map<NodePortTuple, Set<Link>> allLinksCopy = new HashMap<NodePortTuple, Set<Link>>(allLinks);
+				// Remove the links after the spur node that are part of other paths in A so that new paths
+				// found are unique
 				for (Route r : A) {
 					if (r.getPath().size() > (i + 1) && r.getPath().subList(0, i).equals(rootPath.getPath())) {
-						//Remove the links that are part of the previous shortest paths which share the same root
 						allLinksCopy.remove(r.getPath().get(i));
 						allLinksCopy.remove(r.getPath().get(i+1));
 					}
 				}
 
+				// Removes the root path so Dijkstra's doesn't try to go through it to find a path
 				Set<DatapathId> switchesCopy = new HashSet<DatapathId>(switches);
 				for (NodePortTuple npt : rootPath.getPath()) {
 					if (!npt.getNodeId().equals(spurNode)) {
@@ -1078,17 +1089,19 @@ public class TopologyInstance {
 					}
 				}
 
+				// Builds the new topology without the parts we want removed
 				copyOfLinkDpidMap = buildLinkDpidMap(switchesCopy, switchPorts, allLinksCopy);
 
 				log.debug("About to build route.");
 				log.debug("Switches: {}", switchesCopy);
+				// Uses Dijkstra's to try to find a shortest path from the spur node to the destination
 				Route spurPath = buildroute(new RouteId(spurNode, dst), dijkstra(copyOfLinkDpidMap, dst, linkCost, true));
 				if (spurPath == null) {
 					log.debug("spurPath is null");
 					continue;
 				}
 
-				// totalPath = rootPath + spurPath
+				// Adds the root path and spur path together to get a possible shortest path
 				List<NodePortTuple> totalNpt = new LinkedList<NodePortTuple>();
 				totalNpt.addAll(rootPath.getPath());
 				totalNpt.addAll(spurPath.getPath());
@@ -1098,20 +1111,21 @@ public class TopologyInstance {
 				log.debug("Root Path: {}", rootPath);
 				log.debug("Spur Path: {}", spurPath);
 				log.debug("Total Path: {}", totalPath);
+				// Adds the new path into B
 				B.add(totalPath);
 
 				// Restore edges and nodes to graph
 			}
 
+			// If we get out of the loop and there isn't a path in B to add to A, all possible paths have been
+			// found and return A
 			if (B.isEmpty()) {
 				log.debug("B list is empty in Yen's");
 				break;
 			}
 
-			// sort the list from smallest to largest length
-			//B = sortRoutes(B, linkCost);
-
 			log.debug("Removing shortest path from {}", B);
+			// Find the shortest path in B, remove it, and put it in A
 			Route shortestPath = removeShortestPath(B, linkCost);
 			if (shortestPath != null) {
 				log.debug("Adding new shortest path to {} in Yen's", shortestPath);
@@ -1120,8 +1134,6 @@ public class TopologyInstance {
 			else {
 				log.debug("removeShortestPath returned {}", shortestPath);
 			}
-			//A.add(B.get(0));
-			//B.remove(0);
 		}
 
 		log.debug("END OF YEN'S --------------------");
@@ -1130,15 +1142,19 @@ public class TopologyInstance {
 
 	protected Route removeShortestPath(ArrayList<Route> routes, Map<Link, Integer> linkCost) {
 		log.debug("REMOVE SHORTEST PATH -------------");
+		// If there is nothing in B, return
 		if(routes == null){
 			log.debug("Routes == null");
 			return null;
 		}
 		Route shortestPath = null;
+		// Set the default shortest path to the max value
 		Integer shortestPathCost = Integer.MAX_VALUE;
 
+		// Iterate through B and find the shortest path
 		for (Route r : routes) {
 			Integer pathCost = 0;
+			// Add up the weights of each link in the path
 			for (NodePortTuple npt : r.getPath()) {
 				if (allLinks.get(npt) ==  null || linkCost.get(allLinks.get(npt).iterator().next()) == null) {
 					pathCost++;
@@ -1148,6 +1164,7 @@ public class TopologyInstance {
 				}
 			}
 			log.debug("Path {} with cost {}", r, pathCost);
+			// If it is smaller than the current smallest, replace variables with the path just found
 			if (pathCost < shortestPathCost && pathCost > 0) {
 				log.debug("New shortest path {} with cost {}", r, pathCost);
 				shortestPathCost = pathCost;
@@ -1156,6 +1173,7 @@ public class TopologyInstance {
 		}
 
 		log.debug("Remove {} from {}", shortestPath, routes);
+		// Remove the route from B and return it
 		routes.remove(shortestPath);
 
 		log.debug("Shortest path: {}", shortestPath);
