@@ -1152,7 +1152,18 @@ public class TopologyInstance {
 
 			//log.debug("Removing shortest path from {}", B);
 			// Find the shortest path in B, remove it, and put it in A
+			log.info("--------------BEFORE------------------------");
+			for (Route r : B) {
+				log.info(r.toString());
+			}
+			log.info("--------------------------------------------");
 			Route shortestPath = removeShortestPath(B, linkCost);
+			log.info("--------------AFTER------------------------");
+			for (Route r : B) {
+				log.info(r.toString());
+			}
+			log.info("--------------------------------------------");
+
 			if (shortestPath != null) {
 				//log.debug("Adding new shortest path to {} in Yen's", shortestPath);
 				A.add(shortestPath);
