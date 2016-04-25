@@ -35,12 +35,11 @@ public class RouteSerializer extends JsonSerializer<Route> {
 		jGen.configure(Feature.WRITE_NUMBERS_AS_STRINGS, true);
 
 		jGen.writeStartObject();
-		//jGen.writeNumberField("cookie", route.getId().getCookie().getValue());
 		jGen.writeStringField("src_dpid", route.getId().getSrc().toString());
 		jGen.writeStringField("dst_dpid", route.getId().getDst().toString());
 		jGen.writeStringField("hop_count", Integer.toString(route.getRouteHopCount()));
-		jGen.writeNumberField("latency", route.getRouteLatency().getValue());
-		//jGen.writeNumberField("route_count", route.getRouteCount());
+		jGen.writeNumberField("latency", route.getRouteLatency().getValue()); // Might be an issue if value exceed what unsigned long can hold
+		jGen.writeNumberField("route_count", route.getRouteCount());
 		jGen.writeFieldName("path");
 		jGen.writeStartArray();
 		for (NodePortTuple npt : route.getPath()) {
