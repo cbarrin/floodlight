@@ -1138,7 +1138,15 @@ public class TopologyInstance {
 				log.info("Spur Path: {}", spurPath);
 				log.info("Total Path: {}", totalPath);
 				// Adds the new path into B
-				B.add(totalPath);
+				for (Route r_B : B) {
+					for (Route r_A : A) {
+						if (!r_B.equals(totalPath) && !r_A.equals(totalPath)) {
+							B.add(totalPath);
+							break;
+						}
+					}
+				}
+
 
 				// Restore edges and nodes to graph
 			}
