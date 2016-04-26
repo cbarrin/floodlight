@@ -42,15 +42,22 @@ public class RouteMetrics extends ServerResource {
 
         ROUTE_METRIC type;
 
-        if (metric.equals("latency")) {
-            type = ROUTE_METRIC.LATENCY;
-        } else if (metric.equals("utilization")) {
-            type = ROUTE_METRIC.UTILIZATION;
-        } else if (metric.equals("hopcount")) {
-            type = ROUTE_METRIC.HOPCOUNT;
-        } else {
-            log.error("Invalid input {}", metric);
-            return Collections.singletonMap("error", "invalid route metric " + metric);
+        switch (metric) {
+            case "latency":
+                type = ROUTE_METRIC.LATENCY;
+                break;
+            case "utilization":
+                type = ROUTE_METRIC.UTILIZATION;
+                break;
+            case "hopcount":
+                type = ROUTE_METRIC.HOPCOUNT;
+                break;
+            case "hopcount_avoid_tunnels":
+                type = ROUTE_METRIC.HOPCOUNT_AVOID_TUNNELS;
+                break;
+            default:
+                log.error("Invalid input {}", metric);
+                return Collections.singletonMap("error", "invalid route metric " + metric);
         }
 
         if (topology.setRouteMetric(type) != type) {

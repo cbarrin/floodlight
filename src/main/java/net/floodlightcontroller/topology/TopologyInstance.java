@@ -44,8 +44,6 @@ public class TopologyInstance {
 	public static final short LT_BD_LINK = 2;
 	public static final short LT_TUNNEL  = 3;
 
-	private int routeMetrics = TopologyManager.routeMetrics;
-
 	public static final int MAX_LINK_WEIGHT = 10000;
 	public static final int MAX_PATH_WEIGHT = Integer.MAX_VALUE - MAX_LINK_WEIGHT - 1;
 	public static final int PATH_CACHE_SIZE = 1000;
@@ -666,8 +664,8 @@ public class TopologyInstance {
          	 *  3: Latency
          	 *  4: Bandwidth (In Progress)
          	*/
-        	switch (routeMetrics){
-        		case 1:
+        	switch (TopologyManager.getRouteMetricInternal()){
+        		case HOPCOUNT_AVOID_TUNNELS:
         			if(TopologyManager.collectStatistics == true){
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
@@ -682,7 +680,7 @@ public class TopologyInstance {
         	        }
         			return linkCost;
         		
-        		case 2:
+        		case HOPCOUNT:
         			if(TopologyManager.collectStatistics == true){
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
@@ -697,7 +695,7 @@ public class TopologyInstance {
         			}
         			return linkCost;	
         			
-        		case 3:
+        		case LATENCY:
         			if(TopologyManager.collectStatistics == true){
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
@@ -715,7 +713,7 @@ public class TopologyInstance {
         			}
         			return linkCost;
         		
-        		case 4:
+				case UTILIZATION:
         			if(TopologyManager.collectStatistics == false){
         				TopologyManager.statisticsService.collectStatistics(true);
         				TopologyManager.collectStatistics = true;
