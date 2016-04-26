@@ -1221,7 +1221,7 @@ public class TopologyInstance {
 			}
 			log.debug("Path {} with cost {}", r, pathCost);
 			// If it is smaller than the current smallest, replace variables with the path just found
-			if (pathCost < shortestPathCost && pathCost > 0) {
+			if (pathCost < shortestPathCost) {
 				log.debug("New shortest path {} with cost {}", r, pathCost);
 				shortestPathCost = pathCost;
 				shortestPath = r;
