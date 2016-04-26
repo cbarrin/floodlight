@@ -37,6 +37,7 @@ import net.floodlightcontroller.linkdiscovery.ILinkDiscovery;
 import net.floodlightcontroller.linkdiscovery.ILinkDiscoveryService;
 import net.floodlightcontroller.routing.Link;
 import net.floodlightcontroller.routing.Route;
+import net.floodlightcontroller.routing.RouteId;
 import net.floodlightcontroller.threadpool.IThreadPoolService;
 import net.floodlightcontroller.topology.NodePortTuple;
 import net.floodlightcontroller.topology.TopologyInstance;
@@ -561,61 +562,172 @@ public class TopologyInstanceTest {
 
         ////////////////////////////////////////////////////////////////////////////////////
         //Check output with bottom latency = -100.
-        TopologyManager.routeMetrics = 3;
-        k = 2;
 
+        topologyManager.clearCurrentTopology();
+        TopologyManager.routeMetrics = 3;
         int [] lat2 = {1,-100,1};
         CaseyIsABoss(linkArray, lat2);
         topologyManager.createNewInstance();
 
-        /*
-        ArrayList<Route> r2 = topologyManager.getRoutes(one, three, k);
-        log.info("r2: {}", r2.get(0));
-        log.info("paths.get(0): {}", lat_paths.get(0));
-        assertTrue((r2.get(0)).equals(lat_paths.get(0)));
-        assertTrue((r2.get(1)).equals(lat_paths.get(1)));
 
         ////////////////////////////////////////////////////////////////////////////////////
         //Check output with bottom latency = 25000.
-        TopologyManager.routeMetrics = 3;
-        k = 2;
-
+        topologyManager.clearCurrentTopology();
         int [] lat3 = {1,25000,1};
         CaseyIsABoss(linkArray, lat3);
         topologyManager.createNewInstance();
-        ArrayList<Route> r3 = topologyManager.getRoutes(one, three, k);
-        log.info("r3: {}", r3.get(0));
-        log.info("paths.get(0): {}", lat_paths.get(0));
-        assertTrue((r3.get(0)).equals(lat_paths.get(0)));
-        assertTrue((r3.get(1)).equals(lat_paths.get(1)));
 
 
         ///////////////////////////////////////////////////////////////////////
         //Create topology from presentation
-        /*int [][] linkArray = {
+        topologyManager.clearCurrentTopology();
+        TopologyManager.routeMetrics = 1;
+        k = 1000;
+        int [][] linkArray2 = {
                 {1, 1, 2, 1, DIRECT_LINK},
                 {1, 2, 4, 1, DIRECT_LINK},
                 {2, 2, 3, 1, DIRECT_LINK},
                 {3, 3, 5, 2, DIRECT_LINK},
                 {3, 4, 6, 2, DIRECT_LINK},
-                {4, 1, 2, 3, DIRECT_LINK},
-                {4, 2, 3, 2, DIRECT_LINK},
-                {4, 3, 5, 1, DIRECT_LINK},
+                {4, 2, 2, 3, DIRECT_LINK},
+                {4, 3, 3, 2, DIRECT_LINK},
+                {4, 4, 5, 1, DIRECT_LINK},
                 {5, 3, 6, 1, DIRECT_LINK},
         };
 
-        int [] lat = {3,2,4,2,1,1,2,3,2};
-        CaseyIsABoss(linkArray, lat);
+        int [] lat4 = {3,2,4,2,1,1,2,3,2};
+        CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
 
         log.info("Links: {}", topologyManager.getAllLinks());
         //Call getRoutes
 
-        //ArrayList<Route> r = topologyManager.getRoutes(one, six, k);
+        ArrayList<Route> r = topologyManager.getRoutes(one, six, k);
 
-        //log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r);
+        for(int i = 0; i< r.size(); i++) {
+            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r.get(i));
+        }
 
-        */
+        //Create topology from presentation
 
+        topologyManager.clearCurrentTopology();
+        TopologyManager.routeMetrics = 3;
+        k = 7;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+
+        //log.info("Links: {}", topologyManager.getAllLinks());
+        //Call getRoutes
+
+        ArrayList<Route> r2 = topologyManager.getRoutes(one, six, k);
+
+        for(int i = 0; i< r2.size(); i++) {
+            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r2.get(i));
+        }
+
+
+        NodePortTuple one1 = new NodePortTuple(one, OFPort.of(1));
+        NodePortTuple one2 = new NodePortTuple(one, OFPort.of(2));
+
+        NodePortTuple two1 = new NodePortTuple(two, OFPort.of(1));
+        NodePortTuple two2 = new NodePortTuple(two, OFPort.of(2));
+        NodePortTuple two3 = new NodePortTuple(two, OFPort.of(3));
+
+        NodePortTuple three1 = new NodePortTuple(three, OFPort.of(1));
+        NodePortTuple three2 = new NodePortTuple(three, OFPort.of(2));
+        NodePortTuple three3 = new NodePortTuple(three, OFPort.of(3));
+        NodePortTuple three4 = new NodePortTuple(three, OFPort.of(4));
+
+        NodePortTuple four1 = new NodePortTuple(four, OFPort.of(1));
+        NodePortTuple four2 = new NodePortTuple(four, OFPort.of(2));
+        NodePortTuple four3 = new NodePortTuple(four, OFPort.of(3));
+        NodePortTuple four4 = new NodePortTuple(four, OFPort.of(4));
+
+        NodePortTuple five1 = new NodePortTuple(five, OFPort.of(1));
+        NodePortTuple five2 = new NodePortTuple(five, OFPort.of(2));
+        NodePortTuple five3 = new NodePortTuple(five, OFPort.of(3));
+
+        NodePortTuple six1 = new NodePortTuple(six, OFPort.of(1));
+        NodePortTuple six2 = new NodePortTuple(six, OFPort.of(2));
+
+        List<NodePortTuple> route0 = new ArrayList<NodePortTuple>();
+        route0.add(one1);
+        route0.add(two1);
+        route0.add(two2);
+        route0.add(three1);
+        route0.add(three4);
+        route0.add(six2);
+        Route root0 = new Route(one, six);
+        root0.setPath(route0);
+
+        ArrayList<NodePortTuple> route1 = new ArrayList<NodePortTuple>();
+        route1.add(one2);
+        route1.add(four1);
+        route1.add(four3);
+        route1.add(three2);
+        route1.add(three4);
+        route1.add(six2);
+        Route root1 = new Route(one, six);
+        root1.setPath(route1);
+
+        ArrayList<NodePortTuple> route2 = new ArrayList<NodePortTuple>();
+        route2.add(one2);
+        route2.add(four1);
+        route2.add(four4);
+        route2.add(five1);
+        route2.add(five3);
+        route2.add(six1);
+        Route root2 = new Route(one, six);
+        root2.setPath(route2);
+
+        ArrayList<NodePortTuple> route3 = new ArrayList<NodePortTuple>();
+        route3.add(one1);
+        route3.add(two1);
+        route3.add(two2);
+        route3.add(three1);
+        route3.add(three3);
+        route3.add(five2);
+        route3.add(five3);
+        route3.add(six1);
+        Route root3 = new Route(one, six);
+        root3.setPath(route3);
+
+        ArrayList<NodePortTuple> route4 = new ArrayList<NodePortTuple>();
+        route4.add(one2);
+        route4.add(four1);
+        route4.add(four3);
+        route4.add(three2);
+        route4.add(three3);
+        route4.add(five2);
+        route4.add(five3);
+        route4.add(six1);
+        Route root4 = new Route(one, six);
+        root4.setPath(route4);
+
+        ArrayList<NodePortTuple> route5 = new ArrayList<NodePortTuple>();
+        route5.add(one2);
+        route5.add(four1);
+        route5.add(four2);
+        route5.add(two3);
+        route5.add(two2);
+        route5.add(three1);
+        route5.add(three4);
+        route5.add(six2);
+        Route root5 = new Route(one, six);
+        root5.setPath(route5);
+
+        ArrayList<NodePortTuple> route6 = new ArrayList<NodePortTuple>();
+        route6.add(one2);
+        route6.add(four1);
+        route6.add(four2);
+        route6.add(two3);
+        route6.add(two2);
+        route6.add(three1);
+        route6.add(three3);
+        route6.add(five2);
+        route6.add(five3);
+        route6.add(six1);
+        Route root6 = new Route(one, six);
+        root6.setPath(route6);
     }
 }
