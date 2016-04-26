@@ -699,7 +699,7 @@ public class TopologyInstanceTest {
         log.info("Low Hop Road: {}", lat_paths.get(0));
         log.info("High Hop Road: {}", lat_paths.get(1));
 
-        ///////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////
         //Check if routes equal what the expected output should be
         TopologyManager.routeMetrics = 3;
         Integer k = 2;
@@ -713,7 +713,7 @@ public class TopologyInstanceTest {
         assertTrue((r1.get(0)).equals(lat_paths.get(0)));
         assertTrue((r1.get(1)).equals(lat_paths.get(1)));
 
-        ////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////
         //Check output with bottom latency = -100.
 
         topologyManager.clearCurrentTopology();
@@ -723,7 +723,7 @@ public class TopologyInstanceTest {
         topologyManager.createNewInstance();
 
 
-        ////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////
         //Check output with bottom latency = 25000.
         topologyManager.clearCurrentTopology();
         int [] lat3 = {1,25000,1};
@@ -731,7 +731,7 @@ public class TopologyInstanceTest {
         topologyManager.createNewInstance();
 
 
-        ///////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////
         //Create topology from presentation
         topologyManager.clearCurrentTopology();
         TopologyManager.routeMetrics = 1;
@@ -751,10 +751,6 @@ public class TopologyInstanceTest {
         int [] lat4 = {3,2,4,2,1,1,2,3,2};
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
-
-        log.info("Links: {}", topologyManager.getAllLinks());
-        //Call getRoutes
-
         ArrayList<Route> r = topologyManager.getRoutes(one, six, k);
 
         for(int i = 0; i< r.size(); i++) {
@@ -762,17 +758,13 @@ public class TopologyInstanceTest {
         }
 
         ScottIsANoob(r, r.size());
-        //Create topology from presentation
 
+        /////////////////////////////////////////////////////////////////////////////////
         topologyManager.clearCurrentTopology();
         TopologyManager.routeMetrics = 3;
         k = 7;
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
-
-        //log.info("Links: {}", topologyManager.getAllLinks());
-        //Call getRoutes
-
         ArrayList<Route> r2 = topologyManager.getRoutes(one, six, k);
 
         for(int i = 0; i< r2.size(); i++) {
@@ -781,5 +773,60 @@ public class TopologyInstanceTest {
 
         ScottIsANoob(r2, r2.size());
 
+        /////////////////////////////////////////////////////////////////////////////////
+        topologyManager.clearCurrentTopology();
+        TopologyManager.routeMetrics = 1;
+        k = -1;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r3 = topologyManager.getRoutes(one, six, k);
+
+        for(int i = 0; i< r3.size(); i++) {
+            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r3.get(i));
+        }
+
+        ScottIsANoob(r3, r3.size());
+
+        /////////////////////////////////////////////////////////////////////////////////
+        topologyManager.clearCurrentTopology();
+        TopologyManager.routeMetrics = 3;
+        k = -1;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r4 = topologyManager.getRoutes(one, six, k);
+
+        for(int i = 0; i< r4.size(); i++) {
+            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r4.get(i));
+        }
+
+        ScottIsANoob(r4, r4.size());
+
+        /////////////////////////////////////////////////////////////////////////////////
+        topologyManager.clearCurrentTopology();
+        TopologyManager.routeMetrics = 1;
+        k = 3;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r5 = topologyManager.getRoutes(one, six, k);
+
+        for(int i = 0; i< r5.size(); i++) {
+            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r5.get(i));
+        }
+
+        ScottIsANoob(r5, r5.size());
+
+        /////////////////////////////////////////////////////////////////////////////////
+        topologyManager.clearCurrentTopology();
+        TopologyManager.routeMetrics = 3;
+        k = 4;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r6 = topologyManager.getRoutes(one, six, k);
+
+        for(int i = 0; i< r6.size(); i++) {
+            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r6.get(i));
+        }
+
+        ScottIsANoob(r6, r6.size());
     }
 }
