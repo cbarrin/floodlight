@@ -1138,7 +1138,18 @@ public class TopologyInstance {
 				log.info("Spur Path: {}", spurPath);
 				log.info("Total Path: {}", totalPath);
 				// Adds the new path into B
-				B.add(totalPath);
+				int flag = 0;
+				for (Route r_B : B) {
+					for (Route r_A : A) {
+						if (r_B.getPath().equals(totalPath.getPath()) || r_A.getPath().equals(totalPath.getPath())) {
+							flag = 1;
+						}
+					}
+				}
+				if (flag == 0) {
+					B.add(totalPath);
+				}
+
 
 
 
