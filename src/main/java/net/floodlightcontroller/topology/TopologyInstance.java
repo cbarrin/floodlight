@@ -1033,15 +1033,15 @@ public class TopologyInstance {
 				//log.debug("Iterating through the links");
 				if (l.getSrc().equals(src) && l.getDst().equals(dst) &&
 						l.getSrcPort().equals(srcPort) && l.getDstPort().equals(dstPort)) {
-					//log.info("Matching link found: {}", l);
+					log.info("Matching link found: {}", l);
 					cost = cost.add(l.getLatency());
 				}
 			}
 		}
 
 		r.setRouteLatency(cost);
-		//log.info("Total cost is {}", cost);
-		//log.info(r.toString());
+		log.info("Total cost is {}", cost);
+		log.info(r.toString());
 
 	}
 
@@ -1210,6 +1210,7 @@ public class TopologyInstance {
 		for (Route r : routes) {
 			Integer pathCost = 0;
 			// Add up the weights of each link in the path
+			// TODO Get the path cost from the route object
 			for (NodePortTuple npt : r.getPath()) {
 				if (allLinks.get(npt) ==  null || linkCost.get(allLinks.get(npt).iterator().next()) == null) {
 					pathCost++;
