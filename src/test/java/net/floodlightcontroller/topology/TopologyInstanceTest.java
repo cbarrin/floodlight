@@ -506,9 +506,11 @@ public class TopologyInstanceTest {
         }
     }
 
-    public void ScottIsANoob(ArrayList<Route> r)
+    public void ScottIsANoob(ArrayList<Route> r, Integer size)
     {
         TopologyManager tm = getTopologyManager();
+
+        ArrayList<Route> paths = new ArrayList<Route>();
 
         DatapathId one = DatapathId.of(1);
         DatapathId two = DatapathId.of(2);
@@ -550,9 +552,9 @@ public class TopologyInstanceTest {
         route0.add(six2);
         Route root0 = new Route(one, six);
         root0.setPath(route0);
+        paths.add(root0);
         //log.info("root0: {}", root0);
         //log.info("r.get(0) {}:", r.get(0));
-        assertTrue(root0.equals(r.get(0)));
 
 
         ArrayList<NodePortTuple> route1 = new ArrayList<NodePortTuple>();
@@ -566,7 +568,7 @@ public class TopologyInstanceTest {
         root1.setPath(route1);
         //log.info("root1: {}", root1);
         //log.info("r.get(1) {}:", r.get(1));
-        assertTrue(root1.equals(r.get(1)));
+        paths.add(root1);
 
         ArrayList<NodePortTuple> route2 = new ArrayList<NodePortTuple>();
         route2.add(one2);
@@ -579,7 +581,7 @@ public class TopologyInstanceTest {
         root2.setPath(route2);
         //log.info("root2: {}", root2);
         //log.info("r.get(2) {}:", r.get(2));
-        assertTrue(root2.equals(r.get(2)));
+        paths.add(root2);
 
         ArrayList<NodePortTuple> route3 = new ArrayList<NodePortTuple>();
         route3.add(one1);
@@ -594,7 +596,7 @@ public class TopologyInstanceTest {
         root3.setPath(route3);
         //log.info("root3: {}", root3);
         //log.info("r.get(3) {}:", r.get(3));
-        assertTrue(root3.equals(r.get(3)));
+        paths.add(root3);
 
         ArrayList<NodePortTuple> route4 = new ArrayList<NodePortTuple>();
         route4.add(one2);
@@ -609,7 +611,7 @@ public class TopologyInstanceTest {
         root4.setPath(route4);
         //log.info("root4: {}", root4);
         //log.info("r.get(4) {}:", r.get(4));
-        assertTrue(root4.equals(r.get(4)));
+        paths.add(root4);
 
         ArrayList<NodePortTuple> route5 = new ArrayList<NodePortTuple>();
         route5.add(one2);
@@ -624,7 +626,7 @@ public class TopologyInstanceTest {
         root5.setPath(route5);
         //log.info("root5: {}", root5);
         //log.info("r.get(5) {}:", r.get(5));
-        assertTrue(root5.equals(r.get(5)));
+        paths.add(root5);
 
         ArrayList<NodePortTuple> route6 = new ArrayList<NodePortTuple>();
         route6.add(one2);
@@ -641,7 +643,20 @@ public class TopologyInstanceTest {
         root6.setPath(route6);
         //log.info("root6: {}", root6);
         //log.info("r.get(6) {}:", r.get(6));
-        assertTrue(root6.equals(r.get(6)));
+        paths.add(root6);
+
+        int count = 0;
+        int path_length = 7;
+        for(int i=0; i<size; i++) {
+            for(int j=0; j<path_length; j++) {
+                if(paths.get(j).equals(r.get(i))){
+                    assertTrue((paths.get(j)).equals(r.get(i)));
+                    count++;
+                    break;
+                }
+            }
+        }
+        assertTrue(count == size);
     }
 
     @Test
@@ -746,7 +761,7 @@ public class TopologyInstanceTest {
             log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r.get(i));
         }
 
-        ScottIsANoob(r);
+        ScottIsANoob(r, r.size());
         //Create topology from presentation
 
         topologyManager.clearCurrentTopology();
@@ -764,7 +779,7 @@ public class TopologyInstanceTest {
             log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r2.get(i));
         }
 
-
+        ScottIsANoob(r2, r2.size());
 
     }
 }
