@@ -17,38 +17,19 @@
 
 package net.floodlightcontroller.devicemanager.internal;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import org.projectfloodlight.openflow.types.DatapathId;
-import org.projectfloodlight.openflow.types.IPv4Address;
-import org.projectfloodlight.openflow.types.IPv6Address;
-import org.projectfloodlight.openflow.types.MacAddress;
-import org.projectfloodlight.openflow.types.OFPort;
-import org.projectfloodlight.openflow.types.VlanVid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import net.floodlightcontroller.devicemanager.IDeviceService.DeviceField;
-import net.floodlightcontroller.devicemanager.web.DeviceSerializer;
 import net.floodlightcontroller.devicemanager.IDevice;
+import net.floodlightcontroller.devicemanager.IDeviceService.DeviceField;
 import net.floodlightcontroller.devicemanager.IEntityClass;
 import net.floodlightcontroller.devicemanager.SwitchPort;
 import net.floodlightcontroller.devicemanager.SwitchPort.ErrorStatus;
+import net.floodlightcontroller.devicemanager.web.DeviceSerializer;
 import net.floodlightcontroller.topology.ITopologyService;
+import org.projectfloodlight.openflow.types.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * Concrete implementation of {@link IDevice}
@@ -177,7 +158,7 @@ public class Device implements IDevice {
 	 * @param newEntity
 	 *            the entity to add. newEntity must be have the same entity
 	 *            class as device
-	 * @param if positive indicates the index in the entities array were the new
+	 * @param  insertionpoint if positive indicates the index in the entities array were the new
 	 *        entity should be inserted. If negative we will compute the correct
 	 *        insertion point
 	 */
@@ -388,7 +369,12 @@ public class Device implements IDevice {
 	}
 
 	public SwitchPort getTrueAttachmentPoint() {
-		return new SwitchPort(trueAttachmentPoint.getSw(), trueAttachmentPoint.getPort());
+		if (trueAttachmentPoint != null) {
+			return new SwitchPort(trueAttachmentPoint.getSw(), trueAttachmentPoint.getPort());
+		}
+		else {
+			return null;
+		}
 	}
 
 	protected void findTrueAP() {

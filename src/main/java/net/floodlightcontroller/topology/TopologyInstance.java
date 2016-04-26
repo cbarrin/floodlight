@@ -44,8 +44,6 @@ public class TopologyInstance {
 	public static final short LT_BD_LINK = 2;
 	public static final short LT_TUNNEL  = 3;
 
-	private int routeMetrics = TopologyManager.routeMetrics;
-
 	public static final int MAX_LINK_WEIGHT = 10000;
 	public static final int MAX_PATH_WEIGHT = Integer.MAX_VALUE - MAX_LINK_WEIGHT - 1;
 	public static final int PATH_CACHE_SIZE = 1000;
@@ -666,8 +664,8 @@ public class TopologyInstance {
          	 *  3: Latency
          	 *  4: Bandwidth (In Progress)
          	*/
-        	switch (routeMetrics){
-        		case 1:
+        	switch (TopologyManager.getRouteMetricInternal()){
+        		case HOPCOUNT_AVOID_TUNNELS:
         			if(TopologyManager.collectStatistics == true){
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
@@ -682,7 +680,7 @@ public class TopologyInstance {
         	        }
         			return linkCost;
         		
-        		case 2:
+        		case HOPCOUNT:
         			if(TopologyManager.collectStatistics == true){
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
@@ -697,7 +695,7 @@ public class TopologyInstance {
         			}
         			return linkCost;	
         			
-        		case 3:
+        		case LATENCY:
         			if(TopologyManager.collectStatistics == true){
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
@@ -715,7 +713,7 @@ public class TopologyInstance {
         			}
         			return linkCost;
         		
-        		case 4:
+				case UTILIZATION:
         			if(TopologyManager.collectStatistics == false){
         				TopologyManager.statisticsService.collectStatistics(true);
         				TopologyManager.collectStatistics = true;
@@ -1033,15 +1031,15 @@ public class TopologyInstance {
 				//log.debug("Iterating through the links");
 				if (l.getSrc().equals(src) && l.getDst().equals(dst) &&
 						l.getSrcPort().equals(srcPort) && l.getDstPort().equals(dstPort)) {
-					//log.info("Matching link found: {}", l);
+					log.info("Matching link found: {}", l);
 					cost = cost.add(l.getLatency());
 				}
 			}
 		}
 
 		r.setRouteLatency(cost);
-		//log.info("Total cost is {}", cost);
-		//log.info(r.toString());
+		log.info("Total cost is {}", cost);
+		log.info(r.toString());
 
 	}
 
@@ -1210,6 +1208,7 @@ public class TopologyInstance {
 		for (Route r : routes) {
 			Integer pathCost = 0;
 			// Add up the weights of each link in the path
+			// TODO Get the path cost from the route object
 			for (NodePortTuple npt : r.getPath()) {
 				if (allLinks.get(npt) ==  null || linkCost.get(allLinks.get(npt).iterator().next()) == null) {
 					pathCost++;
@@ -1220,7 +1219,7 @@ public class TopologyInstance {
 			}
 			log.debug("Path {} with cost {}", r, pathCost);
 			// If it is smaller than the current smallest, replace variables with the path just found
-			if (pathCost < shortestPathCost && pathCost > 0) {
+			if (pathCost < shortestPathCost) {
 				log.debug("New shortest path {} with cost {}", r, pathCost);
 				shortestPathCost = pathCost;
 				shortestPath = r;

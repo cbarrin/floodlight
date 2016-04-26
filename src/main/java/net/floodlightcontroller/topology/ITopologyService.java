@@ -28,6 +28,11 @@ import net.floodlightcontroller.routing.Link;
 
 public interface ITopologyService extends IFloodlightService  {
 
+	public enum ROUTE_METRIC { LATENCY, HOPCOUNT, HOPCOUNT_AVOID_TUNNELS, UTILIZATION };
+
+	public ROUTE_METRIC setRouteMetric(ROUTE_METRIC metric);
+	public ROUTE_METRIC getRouteMetric();
+
 	/*******************************************************
 	 * GENERAL TOPOLOGY FUNCTIONS
 	 *******************************************************/

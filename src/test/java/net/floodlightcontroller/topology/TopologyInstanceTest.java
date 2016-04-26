@@ -506,6 +506,159 @@ public class TopologyInstanceTest {
         }
     }
 
+    public void ScottIsANoob(ArrayList<Route> r, Integer size)
+    {
+        TopologyManager tm = getTopologyManager();
+
+        ArrayList<Route> paths = new ArrayList<Route>();
+
+        DatapathId one = DatapathId.of(1);
+        DatapathId two = DatapathId.of(2);
+        DatapathId three = DatapathId.of(3);
+        DatapathId four = DatapathId.of(4);
+        DatapathId five = DatapathId.of(5);
+        DatapathId six = DatapathId.of(6);
+
+        NodePortTuple one1 = new NodePortTuple(one, OFPort.of(1));
+        NodePortTuple one2 = new NodePortTuple(one, OFPort.of(2));
+
+        NodePortTuple two1 = new NodePortTuple(two, OFPort.of(1));
+        NodePortTuple two2 = new NodePortTuple(two, OFPort.of(2));
+        NodePortTuple two3 = new NodePortTuple(two, OFPort.of(3));
+
+        NodePortTuple three1 = new NodePortTuple(three, OFPort.of(1));
+        NodePortTuple three2 = new NodePortTuple(three, OFPort.of(2));
+        NodePortTuple three3 = new NodePortTuple(three, OFPort.of(3));
+        NodePortTuple three4 = new NodePortTuple(three, OFPort.of(4));
+
+        NodePortTuple four1 = new NodePortTuple(four, OFPort.of(1));
+        NodePortTuple four2 = new NodePortTuple(four, OFPort.of(2));
+        NodePortTuple four3 = new NodePortTuple(four, OFPort.of(3));
+        NodePortTuple four4 = new NodePortTuple(four, OFPort.of(4));
+
+        NodePortTuple five1 = new NodePortTuple(five, OFPort.of(1));
+        NodePortTuple five2 = new NodePortTuple(five, OFPort.of(2));
+        NodePortTuple five3 = new NodePortTuple(five, OFPort.of(3));
+
+        NodePortTuple six1 = new NodePortTuple(six, OFPort.of(1));
+        NodePortTuple six2 = new NodePortTuple(six, OFPort.of(2));
+
+        List<NodePortTuple> route0 = new ArrayList<NodePortTuple>();
+        route0.add(one1);
+        route0.add(two1);
+        route0.add(two2);
+        route0.add(three1);
+        route0.add(three4);
+        route0.add(six2);
+        Route root0 = new Route(one, six);
+        root0.setPath(route0);
+        paths.add(root0);
+        //log.info("root0: {}", root0);
+        //log.info("r.get(0) {}:", r.get(0));
+
+
+        ArrayList<NodePortTuple> route1 = new ArrayList<NodePortTuple>();
+        route1.add(one2);
+        route1.add(four1);
+        route1.add(four3);
+        route1.add(three2);
+        route1.add(three4);
+        route1.add(six2);
+        Route root1 = new Route(one, six);
+        root1.setPath(route1);
+        //log.info("root1: {}", root1);
+        //log.info("r.get(1) {}:", r.get(1));
+        paths.add(root1);
+
+        ArrayList<NodePortTuple> route2 = new ArrayList<NodePortTuple>();
+        route2.add(one2);
+        route2.add(four1);
+        route2.add(four4);
+        route2.add(five1);
+        route2.add(five3);
+        route2.add(six1);
+        Route root2 = new Route(one, six);
+        root2.setPath(route2);
+        //log.info("root2: {}", root2);
+        //log.info("r.get(2) {}:", r.get(2));
+        paths.add(root2);
+
+        ArrayList<NodePortTuple> route3 = new ArrayList<NodePortTuple>();
+        route3.add(one1);
+        route3.add(two1);
+        route3.add(two2);
+        route3.add(three1);
+        route3.add(three3);
+        route3.add(five2);
+        route3.add(five3);
+        route3.add(six1);
+        Route root3 = new Route(one, six);
+        root3.setPath(route3);
+        //log.info("root3: {}", root3);
+        //log.info("r.get(3) {}:", r.get(3));
+        paths.add(root3);
+
+        ArrayList<NodePortTuple> route4 = new ArrayList<NodePortTuple>();
+        route4.add(one2);
+        route4.add(four1);
+        route4.add(four3);
+        route4.add(three2);
+        route4.add(three3);
+        route4.add(five2);
+        route4.add(five3);
+        route4.add(six1);
+        Route root4 = new Route(one, six);
+        root4.setPath(route4);
+        //log.info("root4: {}", root4);
+        //log.info("r.get(4) {}:", r.get(4));
+        paths.add(root4);
+
+        ArrayList<NodePortTuple> route5 = new ArrayList<NodePortTuple>();
+        route5.add(one2);
+        route5.add(four1);
+        route5.add(four2);
+        route5.add(two3);
+        route5.add(two2);
+        route5.add(three1);
+        route5.add(three4);
+        route5.add(six2);
+        Route root5 = new Route(one, six);
+        root5.setPath(route5);
+        //log.info("root5: {}", root5);
+        //log.info("r.get(5) {}:", r.get(5));
+        paths.add(root5);
+
+        ArrayList<NodePortTuple> route6 = new ArrayList<NodePortTuple>();
+        route6.add(one2);
+        route6.add(four1);
+        route6.add(four2);
+        route6.add(two3);
+        route6.add(two2);
+        route6.add(three1);
+        route6.add(three3);
+        route6.add(five2);
+        route6.add(five3);
+        route6.add(six1);
+        Route root6 = new Route(one, six);
+        root6.setPath(route6);
+        //log.info("root6: {}", root6);
+        //log.info("r.get(6) {}:", r.get(6));
+        paths.add(root6);
+
+        int count = 0;
+        int path_length = 7;
+        for(int i=0; i<size; i++) {
+            for(int j=0; j<path_length; j++) {
+                if(paths.get(j).equals(r.get(i))){
+                    assertTrue((paths.get(j)).equals(r.get(i)));
+                    count++;
+                    break;
+                }
+            }
+        }
+        assertTrue(count == size);
+    }
+
     @Test
     public void testGetRoutes() throws Exception{
         TopologyManager tm = getTopologyManager();
@@ -546,7 +699,7 @@ public class TopologyInstanceTest {
         log.info("Low Hop Road: {}", lat_paths.get(0));
         log.info("High Hop Road: {}", lat_paths.get(1));
 
-        ///////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////
         //Check if routes equal what the expected output should be
         TopologyManager.routeMetrics = 3;
         Integer k = 2;
@@ -560,7 +713,7 @@ public class TopologyInstanceTest {
         assertTrue((r1.get(0)).equals(lat_paths.get(0)));
         assertTrue((r1.get(1)).equals(lat_paths.get(1)));
 
-        ////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////
         //Check output with bottom latency = -100.
 
         topologyManager.clearCurrentTopology();
@@ -570,7 +723,7 @@ public class TopologyInstanceTest {
         topologyManager.createNewInstance();
 
 
-        ////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////
         //Check output with bottom latency = 25000.
         topologyManager.clearCurrentTopology();
         int [] lat3 = {1,25000,1};
@@ -578,7 +731,7 @@ public class TopologyInstanceTest {
         topologyManager.createNewInstance();
 
 
-        ///////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////
         //Create topology from presentation
         topologyManager.clearCurrentTopology();
         TopologyManager.routeMetrics = 1;
@@ -598,136 +751,82 @@ public class TopologyInstanceTest {
         int [] lat4 = {3,2,4,2,1,1,2,3,2};
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
-
-        log.info("Links: {}", topologyManager.getAllLinks());
-        //Call getRoutes
-
         ArrayList<Route> r = topologyManager.getRoutes(one, six, k);
 
         for(int i = 0; i< r.size(); i++) {
             log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r.get(i));
         }
 
-        //Create topology from presentation
+        ScottIsANoob(r, r.size());
 
+        /////////////////////////////////////////////////////////////////////////////////
         topologyManager.clearCurrentTopology();
         TopologyManager.routeMetrics = 3;
         k = 7;
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
-
-        //log.info("Links: {}", topologyManager.getAllLinks());
-        //Call getRoutes
-
         ArrayList<Route> r2 = topologyManager.getRoutes(one, six, k);
 
         for(int i = 0; i< r2.size(); i++) {
             log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r2.get(i));
         }
 
+        ScottIsANoob(r2, r2.size());
 
-        NodePortTuple one1 = new NodePortTuple(one, OFPort.of(1));
-        NodePortTuple one2 = new NodePortTuple(one, OFPort.of(2));
+        /////////////////////////////////////////////////////////////////////////////////
+        topologyManager.clearCurrentTopology();
+        TopologyManager.routeMetrics = 1;
+        k = -1;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r3 = topologyManager.getRoutes(one, six, k);
 
-        NodePortTuple two1 = new NodePortTuple(two, OFPort.of(1));
-        NodePortTuple two2 = new NodePortTuple(two, OFPort.of(2));
-        NodePortTuple two3 = new NodePortTuple(two, OFPort.of(3));
+        for(int i = 0; i< r3.size(); i++) {
+            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r3.get(i));
+        }
 
-        NodePortTuple three1 = new NodePortTuple(three, OFPort.of(1));
-        NodePortTuple three2 = new NodePortTuple(three, OFPort.of(2));
-        NodePortTuple three3 = new NodePortTuple(three, OFPort.of(3));
-        NodePortTuple three4 = new NodePortTuple(three, OFPort.of(4));
+        ScottIsANoob(r3, r3.size());
 
-        NodePortTuple four1 = new NodePortTuple(four, OFPort.of(1));
-        NodePortTuple four2 = new NodePortTuple(four, OFPort.of(2));
-        NodePortTuple four3 = new NodePortTuple(four, OFPort.of(3));
-        NodePortTuple four4 = new NodePortTuple(four, OFPort.of(4));
+        /////////////////////////////////////////////////////////////////////////////////
+        topologyManager.clearCurrentTopology();
+        TopologyManager.routeMetrics = 3;
+        k = -1;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r4 = topologyManager.getRoutes(one, six, k);
 
-        NodePortTuple five1 = new NodePortTuple(five, OFPort.of(1));
-        NodePortTuple five2 = new NodePortTuple(five, OFPort.of(2));
-        NodePortTuple five3 = new NodePortTuple(five, OFPort.of(3));
+        for(int i = 0; i< r4.size(); i++) {
+            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r4.get(i));
+        }
 
-        NodePortTuple six1 = new NodePortTuple(six, OFPort.of(1));
-        NodePortTuple six2 = new NodePortTuple(six, OFPort.of(2));
+        ScottIsANoob(r4, r4.size());
 
-        List<NodePortTuple> route0 = new ArrayList<NodePortTuple>();
-        route0.add(one1);
-        route0.add(two1);
-        route0.add(two2);
-        route0.add(three1);
-        route0.add(three4);
-        route0.add(six2);
-        Route root0 = new Route(one, six);
-        root0.setPath(route0);
+        /////////////////////////////////////////////////////////////////////////////////
+        topologyManager.clearCurrentTopology();
+        TopologyManager.routeMetrics = 1;
+        k = 3;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r5 = topologyManager.getRoutes(one, six, k);
 
-        ArrayList<NodePortTuple> route1 = new ArrayList<NodePortTuple>();
-        route1.add(one2);
-        route1.add(four1);
-        route1.add(four3);
-        route1.add(three2);
-        route1.add(three4);
-        route1.add(six2);
-        Route root1 = new Route(one, six);
-        root1.setPath(route1);
+        for(int i = 0; i< r5.size(); i++) {
+            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r5.get(i));
+        }
 
-        ArrayList<NodePortTuple> route2 = new ArrayList<NodePortTuple>();
-        route2.add(one2);
-        route2.add(four1);
-        route2.add(four4);
-        route2.add(five1);
-        route2.add(five3);
-        route2.add(six1);
-        Route root2 = new Route(one, six);
-        root2.setPath(route2);
+        ScottIsANoob(r5, r5.size());
 
-        ArrayList<NodePortTuple> route3 = new ArrayList<NodePortTuple>();
-        route3.add(one1);
-        route3.add(two1);
-        route3.add(two2);
-        route3.add(three1);
-        route3.add(three3);
-        route3.add(five2);
-        route3.add(five3);
-        route3.add(six1);
-        Route root3 = new Route(one, six);
-        root3.setPath(route3);
+        /////////////////////////////////////////////////////////////////////////////////
+        topologyManager.clearCurrentTopology();
+        TopologyManager.routeMetrics = 3;
+        k = 4;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r6 = topologyManager.getRoutes(one, six, k);
 
-        ArrayList<NodePortTuple> route4 = new ArrayList<NodePortTuple>();
-        route4.add(one2);
-        route4.add(four1);
-        route4.add(four3);
-        route4.add(three2);
-        route4.add(three3);
-        route4.add(five2);
-        route4.add(five3);
-        route4.add(six1);
-        Route root4 = new Route(one, six);
-        root4.setPath(route4);
+        for(int i = 0; i< r6.size(); i++) {
+            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r6.get(i));
+        }
 
-        ArrayList<NodePortTuple> route5 = new ArrayList<NodePortTuple>();
-        route5.add(one2);
-        route5.add(four1);
-        route5.add(four2);
-        route5.add(two3);
-        route5.add(two2);
-        route5.add(three1);
-        route5.add(three4);
-        route5.add(six2);
-        Route root5 = new Route(one, six);
-        root5.setPath(route5);
-
-        ArrayList<NodePortTuple> route6 = new ArrayList<NodePortTuple>();
-        route6.add(one2);
-        route6.add(four1);
-        route6.add(four2);
-        route6.add(two3);
-        route6.add(two2);
-        route6.add(three1);
-        route6.add(three3);
-        route6.add(five2);
-        route6.add(five3);
-        route6.add(six1);
-        Route root6 = new Route(one, six);
-        root6.setPath(route6);
+        ScottIsANoob(r6, r6.size());
     }
 }
