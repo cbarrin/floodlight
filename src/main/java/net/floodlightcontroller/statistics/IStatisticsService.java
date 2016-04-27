@@ -9,9 +9,11 @@ import net.floodlightcontroller.core.module.IFloodlightService;
 import net.floodlightcontroller.topology.NodePortTuple;
 
 public interface IStatisticsService extends IFloodlightService {
-
+	
+	//pass in dpid, port, and returns bandwidth consumption at that time
 	public SwitchPortBandwidth getBandwidthConsumption(DatapathId dpid, OFPort p);
-		
+	
+	//map of above
 	public Map<NodePortTuple, SwitchPortBandwidth> getBandwidthConsumption();
 	
 	public void collectStatistics(boolean collect);
