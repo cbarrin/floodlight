@@ -670,7 +670,7 @@ public class TopologyInstance {
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
         			}
-        			log.info("Using Default Hop Count for Metrics");
+        			log.info("Using Default Behavior Hop Count with Tunnel Bias for Metrics");
         			for (NodePortTuple npt : tunnelPorts) {
         	            if (allLinks.get(npt) == null) continue;
         	            for (Link link : allLinks.get(npt)) {
@@ -685,7 +685,7 @@ public class TopologyInstance {
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
         			}
-        			log.info("Invalid Metric, Using Default Hop Count for Metrics");
+        			log.info("Using Hop Count with no Tunnel Bias");
         			for (NodePortTuple npt : allLinks.keySet()) {
         				if (allLinks.get(npt) == null) continue;
         				for (Link link : allLinks.get(npt)) {
@@ -727,7 +727,7 @@ public class TopologyInstance {
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
         			}
-        			log.info("Using Default Hop Count for Metrics");
+        			log.info("Invalid Selection: Using Default Hop Count with Tunnel Bias for Metrics");
         			for (NodePortTuple npt : tunnelPorts) {
         	            if (allLinks.get(npt) == null) continue;
         	            for (Link link : allLinks.get(npt)) {

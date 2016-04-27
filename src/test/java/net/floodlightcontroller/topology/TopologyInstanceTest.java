@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import static net.floodlightcontroller.topology.ITopologyService.ROUTE_METRIC.HOPCOUNT;
+import static net.floodlightcontroller.topology.ITopologyService.ROUTE_METRIC.HOPCOUNT_AVOID_TUNNELS;
 import static net.floodlightcontroller.topology.ITopologyService.ROUTE_METRIC.LATENCY;
 import static org.junit.Assert.*;
 import net.floodlightcontroller.core.IFloodlightProviderService;
@@ -647,10 +648,13 @@ public class TopologyInstanceTest {
         //log.info("r.get(6) {}:", r.get(6));
         paths.add(root6);
 
+        //The heart of the validate function.
+        //Iterates through list and ensures each entry is present.
         int count = 0;
         int path_length = 7;
         for(int i=0; i<size; i++) {
             for(int j=0; j<path_length; j++) {
+                //This may be redundant, but bear with me...
                 if(paths.get(j).equals(r.get(i))){
                     assertTrue((paths.get(j)).equals(r.get(i)));
                     count++;
@@ -672,9 +676,7 @@ public class TopologyInstanceTest {
         DatapathId five = DatapathId.of(5);
         DatapathId six = DatapathId.of(6);
 
-        // 1 - hop count
-        // 3 - latency
-        topologyManager.setRouteMetric(LATENCY);
+
 
         //Get all paths based on latency. These will
         //be used in the assertion statements below
@@ -686,11 +688,11 @@ public class TopologyInstanceTest {
 
         int [] lat = {1,50,1};
         CaseyIsABoss(linkArray, lat);
+        topologyManager.setRouteMetric(LATENCY);
         topologyManager.createNewInstance();
         ArrayList<Route> lat_paths = topologyManager.getRoutes(one, three, 2);
-        log.info("Links: {}", topologyManager.getAllLinks());
-        log.info("Low Lat Road: {}", lat_paths.get(0));
-        log.info("High Lat Road: {}", lat_paths.get(1));
+        log.info("Path 1: {}", lat_paths.get(0));
+        log.info("Path 2: {}", lat_paths.get(1));
 
         //Get hop count paths for use in assertion statements
         topologyManager.setRouteMetric(HOPCOUNT);
@@ -702,7 +704,8 @@ public class TopologyInstanceTest {
         log.info("High Hop Road: {}", lat_paths.get(1));
 
         ////////////////////////////////////////////////////////////////////////
-        //Check if routes equal what the expected output should be
+        //Check if routes equal what the expected output should be.
+        topologyManager.clearCurrentTopology();
         topologyManager.setRouteMetric(LATENCY);
         Integer k = 2;
 
@@ -804,7 +807,7 @@ public class TopologyInstanceTest {
         //No paths should be output as a result.
         //Based on HOPCOUNT.
         topologyManager.clearCurrentTopology();
-        topologyManager.setRouteMetric(HOPCOUNT);
+        topologyManager.setRouteMetric(HOPCOUNT_AVOID_TUNNELS);
         k = -1;
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
@@ -838,7 +841,7 @@ public class TopologyInstanceTest {
         //In this case, only 3 were requested.
         //Based on HOPCOUNT.
         topologyManager.clearCurrentTopology();
-        topologyManager.setRouteMetric(HOPCOUNT);
+        topologyManager.setRouteMetric(HOPCOUNT_AVOID_TUNNELS);
         k = 3;
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
@@ -912,5 +915,21 @@ public class TopologyInstanceTest {
         }
 
         ScottIsANoob(r9, r9.size());
+
+        ///////////////////////////////////////////////////////////////////////////////
+        //Check topology with invalid node numbers.
+        //Try to use src == 7
+        topologyManager.clearCurrentTopology();
+        topologyManager.setRouteMetric(HOPCOUNT_AVOID_TUNNELS);
+        k = 4;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r10 = topologyManager.getRoutes(one, DatapathId.of(7), k);
+
+        for(int i = 0; i< r10.size(); i++) {
+            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r10.get(i));
+        }
+
+        ScottIsANoob(r10, r10.size());
     }
 }
