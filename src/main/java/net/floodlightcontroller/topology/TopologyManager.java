@@ -892,6 +892,9 @@ public class TopologyManager implements IFloodlightModule, ITopologyService, IRo
 				case "hopcount_avoid_tunnels":
 					routeMetric = ROUTE_METRIC.HOPCOUNT_AVOID_TUNNELS;
 					break;
+				case "link_speed":
+					routeMetric = ROUTE_METRIC.LINK_SPEED;
+					break;
 				default:
 					log.error("Invalid input {}", metric);
 					break;
@@ -1341,8 +1344,6 @@ public class TopologyManager implements IFloodlightModule, ITopologyService, IRo
 		return broadcastDomainPorts;
 	}
 
-
-
 	public void informListeners(List<LDUpdate> linkUpdates) {
 
 		if (role != null && role != HARole.ACTIVE)
@@ -1471,6 +1472,8 @@ public class TopologyManager implements IFloodlightModule, ITopologyService, IRo
 			addOrUpdateTunnelLink(srcId, srcPort, dstId, dstPort, latency);
 		}
 	}
+	
+	
 
 	public void removeLink(Link link)  {
 		linksUpdated = true;
