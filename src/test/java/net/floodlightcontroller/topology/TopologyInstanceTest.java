@@ -22,6 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static net.floodlightcontroller.topology.ITopologyService.ROUTE_METRIC.HOPCOUNT;
+import static net.floodlightcontroller.topology.ITopologyService.ROUTE_METRIC.HOPCOUNT_AVOID_TUNNELS;
+import static net.floodlightcontroller.topology.ITopologyService.ROUTE_METRIC.LATENCY;
 import static org.junit.Assert.*;
 import net.floodlightcontroller.core.IFloodlightProviderService;
 import net.floodlightcontroller.core.internal.IOFSwitchService;
@@ -645,10 +648,13 @@ public class TopologyInstanceTest {
         //log.info("r.get(6) {}:", r.get(6));
         paths.add(root6);
 
+        //The heart of the validate function.
+        //Iterates through list and ensures each entry is present.
         int count = 0;
         int path_length = 7;
         for(int i=0; i<size; i++) {
             for(int j=0; j<path_length; j++) {
+                //This may be redundant, but bear with me...
                 if(paths.get(j).equals(r.get(i))){
                     assertTrue((paths.get(j)).equals(r.get(i)));
                     count++;
@@ -662,7 +668,7 @@ public class TopologyInstanceTest {
     @Test
     public void testGetRoutes() throws Exception{
         TopologyManager tm = getTopologyManager();
-
+        Integer k = 2;
         DatapathId one = DatapathId.of(1);
         DatapathId two = DatapathId.of(2);
         DatapathId three = DatapathId.of(3);
@@ -670,58 +676,58 @@ public class TopologyInstanceTest {
         DatapathId five = DatapathId.of(5);
         DatapathId six = DatapathId.of(6);
 
-        // 1 - hop count
-        // 3 - latency
-        TopologyManager.routeMetrics = 3;
 
-        //Get all paths based on latency. These will
-        //be used in the assertion statements below
+        //FIRST TOPOLOGY
+        //Both link arrays and corresponding latency
+        //array used in this unit test
         int [][] linkArray = {
                 {1, 1, 2, 1, DIRECT_LINK},
                 {1, 2, 3, 1, DIRECT_LINK},
                 {2, 2, 3, 2, DIRECT_LINK},
         };
-
         int [] lat = {1,50,1};
+
+        //NOTE: Output from the next four log.info
+        //      should be mirrored!
+        //
+        //Get paths based on latency
+        topologyManager.setRouteMetric(LATENCY);
         CaseyIsABoss(linkArray, lat);
         topologyManager.createNewInstance();
-        ArrayList<Route> lat_paths = topologyManager.getRoutes(one, three, 2);
-        log.info("Links: {}", topologyManager.getAllLinks());
-        log.info("Low Lat Road: {}", lat_paths.get(0));
-        log.info("High Lat Road: {}", lat_paths.get(1));
+        ArrayList<Route> lat_paths = topologyManager.getRoutes(one, three, k);
+        log.info("Path 1: {}", lat_paths.get(0));
+        log.info("Path 2: {}", lat_paths.get(1));
 
-        //Get hop count paths for use in assertion statements
-        TopologyManager.routeMetrics = 1;
+        //Get paths based on hop count
+        topologyManager.clearCurrentTopology();
+        topologyManager.setRouteMetric(HOPCOUNT);
         CaseyIsABoss(linkArray, lat);
         topologyManager.createNewInstance();
-        ArrayList<Route> hop_paths = topologyManager.getRoutes(one, three, 2);
-        log.info("Links: {}", topologyManager.getAllLinks());
-        log.info("Low Hop Road: {}", lat_paths.get(0));
-        log.info("High Hop Road: {}", lat_paths.get(1));
+        ArrayList<Route> hop_paths = topologyManager.getRoutes(one, three, k);
+        log.info("Path 1: {}", hop_paths.get(0));
+        log.info("Path 2: {}", hop_paths.get(1));
 
+
+        //BEGIN REAL TESTING... ABOVE IS JUST A SAMPLE!
         ////////////////////////////////////////////////////////////////////////
-        //Check if routes equal what the expected output should be
-        TopologyManager.routeMetrics = 3;
-        Integer k = 2;
-
+        //Check if routes equal what the expected output should be.
+        topologyManager.clearCurrentTopology();
+        topologyManager.setRouteMetric(LATENCY);
         int [] lat1 = {1,50,1};
         CaseyIsABoss(linkArray, lat1);
         topologyManager.createNewInstance();
         ArrayList<Route> r1 = topologyManager.getRoutes(one, three, k);
-        log.info("r1: {}", r1.get(0));
-        log.info("paths.get(0): {}", lat_paths.get(0));
         assertTrue((r1.get(0)).equals(lat_paths.get(0)));
         assertTrue((r1.get(1)).equals(lat_paths.get(1)));
 
         //////////////////////////////////////////////////////////////////////////
         //Check output with bottom latency = -100.
-
         topologyManager.clearCurrentTopology();
-        TopologyManager.routeMetrics = 3;
+        topologyManager.setRouteMetric(LATENCY);
         int [] lat2 = {1,-100,1};
         CaseyIsABoss(linkArray, lat2);
         topologyManager.createNewInstance();
-
+        log.info("Latency = (-100) => Links: {}", topologyManager.getAllLinks());
 
         //////////////////////////////////////////////////////////////////////////
         //Check output with bottom latency = 25000.
@@ -729,13 +735,32 @@ public class TopologyInstanceTest {
         int [] lat3 = {1,25000,1};
         CaseyIsABoss(linkArray, lat3);
         topologyManager.createNewInstance();
+        log.info("Latency = (25000) => Links: {}", topologyManager.getAllLinks());
 
 
         //////////////////////////////////////////////////////////////////////////
-        //Create topology from presentation
-        topologyManager.clearCurrentTopology();
-        TopologyManager.routeMetrics = 1;
-        k = 1000;
+        //////////////////////////////////////////////////////////////////////////
+        //SECOND TOPOLOGY - Multiple latency arrays used!
+        //Created topology from presentation. Shown below is a graphical
+        //representation in ASCII characters.
+
+        /*  -------        -------        -------
+           |       |      |       |----->|1      |
+           |  '1' 1|----->|1 '2' 2|      |  '3' 4|----------|
+           |   2   |      |   3   |   |->|2  3   |          |
+            -------        -------    |   -------           |
+               |              |       |      |              |
+               |              |       |      |              |
+               |              V       |      V              V
+               |           -------    |   -------        -------
+               |          |   2  3|---|  |   2   |      |   2   |
+               |--------->|1 '4'  |      |  '5' 3|----->|1 '6'  |
+                          |      4|----->|1      |      |       |
+                           -------        -------        -------
+
+                           "EXTREMELY BALLIN' GRAPH MADE BY CASEY"
+                                 --YOU'RE WELCOME RYAN--
+                                    (Scott is a n00b)                */
         int [][] linkArray2 = {
                 {1, 1, 2, 1, DIRECT_LINK},
                 {1, 2, 4, 1, DIRECT_LINK},
@@ -748,85 +773,154 @@ public class TopologyInstanceTest {
                 {5, 3, 6, 1, DIRECT_LINK},
         };
 
+
+        ////////////////////////////////////////////////////////////////////////////////
+        //What happens when k > total paths in topology?
+        //All paths should be found. 7 in this case.
+        topologyManager.clearCurrentTopology();
+        topologyManager.setRouteMetric(HOPCOUNT);
+        k = 1000;
         int [] lat4 = {3,2,4,2,1,1,2,3,2};
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
         ArrayList<Route> r = topologyManager.getRoutes(one, six, k);
-
         for(int i = 0; i< r.size(); i++) {
-            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r.get(i));
+            log.info("k = (1000) => Route: {}", r.get(i));
         }
-
         ScottIsANoob(r, r.size());
 
         /////////////////////////////////////////////////////////////////////////////////
+        //Checking algorithm to see if all paths are found.
+        //Result should be 7 distinct paths.
+        //Total number of paths in topology is SEVEN.
         topologyManager.clearCurrentTopology();
-        TopologyManager.routeMetrics = 3;
+        topologyManager.setRouteMetric(HOPCOUNT);
         k = 7;
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
         ArrayList<Route> r2 = topologyManager.getRoutes(one, six, k);
-
         for(int i = 0; i< r2.size(); i++) {
-            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r2.get(i));
+            log.info("k = (7) => Route: {}", r2.get(i));
         }
-
         ScottIsANoob(r2, r2.size());
 
         /////////////////////////////////////////////////////////////////////////////////
+        //Test output with negative input value.
+        //No paths should be output as a result.
+        //Based on HOPCOUNT.
         topologyManager.clearCurrentTopology();
-        TopologyManager.routeMetrics = 1;
+        topologyManager.setRouteMetric(HOPCOUNT);
         k = -1;
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
         ArrayList<Route> r3 = topologyManager.getRoutes(one, six, k);
-
         for(int i = 0; i< r3.size(); i++) {
-            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r3.get(i));
+            log.info("HOPCOUNT.k = (-1) => Route: {}", r3.get(i));
         }
-
         ScottIsANoob(r3, r3.size());
 
         /////////////////////////////////////////////////////////////////////////////////
+        //Test output with negative input value.
+        //No paths should be output as a result.
+        //Based on LATENCY.
         topologyManager.clearCurrentTopology();
-        TopologyManager.routeMetrics = 3;
+        topologyManager.setRouteMetric(LATENCY);
         k = -1;
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
         ArrayList<Route> r4 = topologyManager.getRoutes(one, six, k);
-
         for(int i = 0; i< r4.size(); i++) {
-            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r4.get(i));
+            log.info("LATENCY.k = (-1) => Route: {}", r4.get(i));
         }
-
         ScottIsANoob(r4, r4.size());
 
         /////////////////////////////////////////////////////////////////////////////////
+        //Simple route checking with less than max routes requested.
+        //In this case, only 3 were requested.
+        //Based on HOPCOUNT.
         topologyManager.clearCurrentTopology();
-        TopologyManager.routeMetrics = 1;
+        topologyManager.setRouteMetric(HOPCOUNT);
         k = 3;
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
         ArrayList<Route> r5 = topologyManager.getRoutes(one, six, k);
-
         for(int i = 0; i< r5.size(); i++) {
-            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r5.get(i));
+            log.info("HOPCOUNT.k = (3) => Route: {}", r5.get(i));
         }
-
         ScottIsANoob(r5, r5.size());
 
         /////////////////////////////////////////////////////////////////////////////////
+        //Simple route checking with less than max routes requested.
+        //In this case, just 4 out of 7 possibilities requested.
+        //Based on LATENCY.
         topologyManager.clearCurrentTopology();
-        TopologyManager.routeMetrics = 3;
+        topologyManager.setRouteMetric(LATENCY);
         k = 4;
         CaseyIsABoss(linkArray2, lat4);
         topologyManager.createNewInstance();
         ArrayList<Route> r6 = topologyManager.getRoutes(one, six, k);
-
         for(int i = 0; i< r6.size(); i++) {
-            log.info("GEDDDDDDDDINGGGGGGGGGSSSSS! Route: {}", r6.get(i));
+            log.info("LATENCY.k = (4) => Route: {}", r6.get(i));
         }
-
         ScottIsANoob(r6, r6.size());
+
+        ///////////////////////////////////////////////////////////////////////////////
+        //Test output with all latency links set to zero.
+        //Should return four of the first paths that yen's algorithm calculated.
+        //Order of output here is of no concern.
+        topologyManager.clearCurrentTopology();
+        topologyManager.setRouteMetric(LATENCY);
+        k = 4;
+        int [] lat5 = {0,0,0,0,0,0,0,0,0};
+        CaseyIsABoss(linkArray2, lat5);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r7 = topologyManager.getRoutes(one, six, k);
+        for(int i = 0; i< r7.size(); i++) {
+            log.info("Route latency all ZERO: {}", r7.get(i));
+        }
+        ScottIsANoob(r7, r7.size());
+
+        ///////////////////////////////////////////////////////////////////////////////
+        //Check topology with same switch input: 1 -> 1.
+        //Should have no output.
+        topologyManager.clearCurrentTopology();
+        topologyManager.setRouteMetric(HOPCOUNT);
+        k = 4;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r8 = topologyManager.getRoutes(one, one, k);
+        for(int i = 0; i< r8.size(); i++) {
+            log.info("(src == dst) => Route: {}", r8.get(i));
+        }
+        ScottIsANoob(r8, r8.size());
+
+        ///////////////////////////////////////////////////////////////////////////////
+        //Check topology with reverse input: 6 -> 1 instead of 1 -> 6
+        //Should have no output since it is impossible to get from 6 to 1.
+        topologyManager.clearCurrentTopology();
+        topologyManager.setRouteMetric(HOPCOUNT);
+        k = 4;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r9 = topologyManager.getRoutes(six, one, k);
+        for(int i = 0; i< r9.size(); i++) {
+            log.info("Reversed Route (6 -> 1): {}", r9.get(i));
+        }
+        ScottIsANoob(r9, r9.size());
+
+        ///////////////////////////////////////////////////////////////////////////////
+        //Check topology with invalid node numbers.
+        //Try to use src == 7
+        //Output should indicate no valid route.
+        topologyManager.clearCurrentTopology();
+        topologyManager.setRouteMetric(HOPCOUNT);
+        k = 4;
+        CaseyIsABoss(linkArray2, lat4);
+        topologyManager.createNewInstance();
+        ArrayList<Route> r10 = topologyManager.getRoutes(one, DatapathId.of(7), k);
+        for(int i = 0; i< r10.size(); i++) {
+            log.info("(src == 7) => Route: {}", r10.get(i));
+        }
+        ScottIsANoob(r10, r10.size());
     }
 }

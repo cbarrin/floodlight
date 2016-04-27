@@ -1079,7 +1079,11 @@ public class TopologyInstance {
 		ArrayList<Route> B = new ArrayList<Route>();
 
 		// The number of routes requested should never be less than 1.
-		if(K < 1){
+		if (K < 1) {
+			return A;
+		}
+
+		if (!switches.contains(src) || !switches.contains(dst)) {
 			return A;
 		}
 
