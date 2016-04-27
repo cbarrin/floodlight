@@ -55,6 +55,9 @@ public class RouteMetrics extends ServerResource {
             case "hopcount_avoid_tunnels":
                 type = ROUTE_METRIC.HOPCOUNT_AVOID_TUNNELS;
                 break;
+            case "link_speed":
+                    type = ROUTE_METRIC.LINK_SPEED;
+                    break;
             default:
                 log.error("Invalid input {}", metric);
                 return Collections.singletonMap("error", "invalid route metric " + metric);

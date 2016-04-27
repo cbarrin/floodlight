@@ -24,7 +24,6 @@ import net.floodlightcontroller.routing.Link;
 import net.floodlightcontroller.routing.Route;
 import net.floodlightcontroller.routing.RouteId;
 import net.floodlightcontroller.servicechaining.ServiceChain;
-import net.floodlightcontroller.statistics.SwitchPortBandwidth;
 import net.floodlightcontroller.util.ClusterDFS;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFPort;
@@ -653,16 +652,23 @@ public class TopologyInstance {
 		return ret;
 	}
 
+	/*
+	 * Creates a map of links and the cost associated with each link
+	 * 
+	 * 
+	 */
+	
 	protected Map<Link,Integer> initLinkCostMap() {
     		Map<Link, Integer> linkCost = new HashMap<Link, Integer>();
-    		Map<NodePortTuple, SwitchPortBandwidth> linkBandwidth;
+    		long rawLinkSpeed; 
+    		int linkSpeedMBps;
     		int tunnel_weight = switchPorts.size() + 1;
     	
     		/* routeMetrics:
         	 *  1: Hop Count(Default Metrics)
          	 *  2: Hop Count (Treat Tunnels same as link)
          	 *  3: Latency
-         	 *  4: Bandwidth (In Progress)
+         	 *  4: Link Speed (Needs to be tested)
          	*/
         	switch (TopologyManager.getRouteMetricInternal()){
         		case HOPCOUNT_AVOID_TUNNELS:
@@ -670,7 +676,7 @@ public class TopologyInstance {
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
         			}
-        			log.info("Using Default Hop Count for Metrics");
+        			log.info("Using Default: Hop Count with Tunnel Bias for Metrics");
         			for (NodePortTuple npt : tunnelPorts) {
         	            if (allLinks.get(npt) == null) continue;
         	            for (Link link : allLinks.get(npt)) {
@@ -685,7 +691,7 @@ public class TopologyInstance {
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
         			}
-        			log.info("Invalid Metric, Using Default Hop Count for Metrics");
+        			log.info("Using Hop Count without Tunnel Bias for Metrics");
         			for (NodePortTuple npt : allLinks.keySet()) {
         				if (allLinks.get(npt) == null) continue;
         				for (Link link : allLinks.get(npt)) {
@@ -713,13 +719,26 @@ public class TopologyInstance {
         			}
         			return linkCost;
         		
-				case UTILIZATION:
+				case LINK_SPEED:
         			if(TopologyManager.collectStatistics == false){
         				TopologyManager.statisticsService.collectStatistics(true);
         				TopologyManager.collectStatistics = true;
         			}
-        			linkBandwidth = TopologyManager.statisticsService.getBandwidthConsumption();
-        			
+        			log.info("Using Link Speed for Route Metrics");
+        			for (NodePortTuple npt : allLinks.keySet()) {
+        				if (allLinks.get(npt) == null) continue;
+        				rawLinkSpeed = TopologyManager.statisticsService.getLinkSpeed(npt);
+        				for (Link link : allLinks.get(npt)) {
+        					if (link == null) continue;
+        					
+        					if((rawLinkSpeed / 10^6) / 8 > 1){
+        						linkSpeedMBps = (int)(rawLinkSpeed / 10^6) / 8;
+        						linkCost.put(link, (1/linkSpeedMBps)*1000);
+        					}
+        					else
+        						linkCost.put(link, MAX_LINK_WEIGHT);
+        				}
+        			}
         			return linkCost;
         			
         		default:
@@ -727,7 +746,7 @@ public class TopologyInstance {
         				TopologyManager.statisticsService.collectStatistics(false);
         				TopologyManager.collectStatistics = false;
         			}
-        			log.info("Using Default Hop Count for Metrics");
+        			log.info("Invalid Selection: Using Default Hop Count with Tunnel Bias for Metrics");
         			for (NodePortTuple npt : tunnelPorts) {
         	            if (allLinks.get(npt) == null) continue;
         	            for (Link link : allLinks.get(npt)) {
@@ -920,8 +939,6 @@ public class TopologyInstance {
 		DatapathId dstId = id.getDst();
 		//set of NodePortTuples on the route
 		LinkedList<NodePortTuple> sPorts = new LinkedList<NodePortTuple>();
-		int hopCount = 0;
-		U64 latency = U64.ZERO;
 
 		if (tree == null) return null;
 

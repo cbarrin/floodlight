@@ -250,6 +250,10 @@ public class StatisticsCollector implements IFloodlightModule, IStatisticsServic
 		return Collections.unmodifiableMap(portStats);
 	}
 	
+	public long getLinkSpeed(NodePortTuple npt) {
+		return portStats.get(npt).getLinkSpeedBitPerS().getValue();
+	}
+	
 	@Override
 	public synchronized void collectStatistics(boolean collect) {
 		if (collect && !isEnabled) {
