@@ -679,7 +679,26 @@ public class TopologyInstanceTest {
 
         //FIRST TOPOLOGY
         //Both link arrays and corresponding latency
-        //array used in this unit test
+        //array used in this unit test. Shown below is
+        //a graphical representation of the
+
+        /*
+                                    -------
+                                   |       |
+                          -------->|1 '2' 2|--------
+                          |        |       |        |
+                          |         -------         |
+                          |                         V
+                       -------                   -------
+                      |   1   |                 |   2   |
+                      |  '1' 2|---------------->|1 '3'  |
+                      |       |                 |       |
+                       -------                   -------
+                     "EXTREMELY BALLIN' GRAPH MADE BY CASEY v1"
+                             --YOU'RE WELCOME RYAN--
+                                (Scott is a n00b)
+
+         */
         int [][] linkArray = {
                 {1, 1, 2, 1, DIRECT_LINK},
                 {1, 2, 3, 1, DIRECT_LINK},
@@ -690,7 +709,8 @@ public class TopologyInstanceTest {
         //NOTE: Output from the next four log.info
         //      should be mirrored!
         //
-        //Get paths based on latency
+        //Get paths based on latency.
+        //I AM SUPER LAZY AND DIDN'T WANT TO REMAKE THESE BY HAND.
         topologyManager.setRouteMetric(LATENCY);
         CaseyIsABoss(linkArray, lat);
         topologyManager.createNewInstance();
@@ -758,7 +778,7 @@ public class TopologyInstanceTest {
                           |      4|----->|1      |      |       |
                            -------        -------        -------
 
-                           "EXTREMELY BALLIN' GRAPH MADE BY CASEY"
+                           "EXTREMELY BALLIN' GRAPH MADE BY CASEY v2"
                                  --YOU'RE WELCOME RYAN--
                                     (Scott is a n00b)                */
         int [][] linkArray2 = {
