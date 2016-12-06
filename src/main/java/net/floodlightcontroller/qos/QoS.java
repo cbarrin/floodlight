@@ -45,6 +45,11 @@ public class QoS implements IQoS, IFloodlightModule {
             OFQueueGetConfigReply reply = future.get(10, TimeUnit.SECONDS);
             log.info("Got queue config reply: {}", reply);
     /* Iterate over all queues */
+            reply.getQueues().stream()
+                    .flatMap(q -> q.getProperties().stream())
+                    .map(OFQueueProp::getType)
+                    .
+
             for (OFPacketQueue q : reply.getQueues()) {
                 OFPort p = q.getPort(); /* The switch port the queue is on */
                 long id = q.getQueueId(); /* The ID of the queue */
