@@ -1,12 +1,14 @@
 package net.floodlightcontroller.qos;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import net.floodlightcontroller.core.IOFSwitch;
 import net.floodlightcontroller.core.internal.IOFSwitchService;
 import net.floodlightcontroller.core.module.FloodlightModuleContext;
 import net.floodlightcontroller.core.module.FloodlightModuleException;
 import net.floodlightcontroller.core.module.IFloodlightModule;
 import net.floodlightcontroller.core.module.IFloodlightService;
 import org.projectfloodlight.openflow.protocol.OFPacketQueue;
+import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFQueueGetConfigReply;
 import org.projectfloodlight.openflow.protocol.OFQueueGetConfigRequest;
 import org.projectfloodlight.openflow.protocol.queueprop.OFQueueProp;
@@ -33,45 +35,51 @@ import java.util.concurrent.TimeoutException;
  */
 public class QoS implements IQoS, IFloodlightModule {
     private static final Logger log = LoggerFactory.getLogger(QoS.class);
-    
     private static IOFSwitchService switchService;
 
-    public void getQueues() {
-        OFFactoryVer13 factory = new OFFactoryVer13();
-        OFQueueGetConfigRequest cr = factory.buildQueueGetConfigRequest().setPort(OFPort.of(1)).build(); /* Request queues on any port (i.e. don't care) */
-        ListenableFuture<OFQueueGetConfigReply> future = switchService.getSwitch(DatapathId.of(1)).writeRequest(cr); /* Send request to switch 1 */
-        try {
-    /* Wait up to 10s for a reply; return when received; else exception thrown */
-            OFQueueGetConfigReply reply = future.get(10, TimeUnit.SECONDS);
-            log.info("Got queue config reply: {}", reply);
-    /* Iterate over all queues */
-            reply.getQueues().stream()
-                    .flatMap(q -> q.getProperties().stream())
-                    .map(OFQueueProp::getType)
-                    .
+    private boolean isQoSEnabled = false;
 
-            for (OFPacketQueue q : reply.getQueues()) {
-                OFPort p = q.getPort(); /* The switch port the queue is on */
-                long id = q.getQueueId(); /* The ID of the queue */
-            /* Determine if the queue rates */
-                for (OFQueueProp qp : q.getProperties()) {
-                    int rate;
-                /* This is a bit clunky now -- need to improve API in Loxi */
-                    switch (qp.getType()) {
-                        case OFQueuePropertiesSerializerVer13.MIN_RATE_VAL: /* min rate */
-                            OFQueuePropMinRate min = (OFQueuePropMinRate) qp;
-                            rate = min.getRate();
-                            break;
-                        case OFQueuePropertiesSerializerVer13.MAX_RATE_VAL: /* max rate */
-                            OFQueuePropMaxRate max = (OFQueuePropMaxRate) qp;
-                            rate = max.getRate();
-                            break;
+    public void getQueues() {
+        OFQueueGetConfigRequest request;
+        OFQueueGetConfigReply reply;
+        ListenableFuture<OFQueueGetConfigReply> future;
+        for (DatapathId dpid : switchService.getAllSwitchDpids()) {
+            IOFSwitch sw = switchService.getActiveSwitch(dpid);
+            for (OFPortDesc p : sw.getPorts()) {
+                request = sw.getOFFactory()
+                        .buildQueueGetConfigRequest()
+                        .setPort(p.getPortNo())
+                        .build();
+                future = sw.writeRequest(request);
+                try {
+                    reply = future.get(10, TimeUnit.SECONDS);
+                    for (OFPacketQueue q : reply.getQueues()) {
+                        log.info("Port: {}\tQueue: {}", p.getPortNo(), q.getProperties());
                     }
+                } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                    e.printStackTrace();
                 }
             }
-        } catch (InterruptedException | ExecutionException | TimeoutException e) { /* catch e.g. timeout */
-            e.printStackTrace();
         }
+    }
+
+    /*
+     * IQoS implementation
+	 */
+
+    @Override
+    public void enable() {
+        isQoSEnabled = true;
+    }
+
+    @Override
+    public void disable() {
+        isQoSEnabled = false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return isQoSEnabled;
     }
 
     /*
@@ -96,7 +104,10 @@ public class QoS implements IQoS, IFloodlightModule {
 
     @Override
     public Collection<Class<? extends IFloodlightService>> getModuleDependencies() {
-        return null;
+        Collection<Class<? extends IFloodlightService>> l =
+                new ArrayList<Class<? extends IFloodlightService>>();
+        l.add(IOFSwitchService.class);
+        return l;
     }
 
     @Override
@@ -107,10 +118,12 @@ public class QoS implements IQoS, IFloodlightModule {
     @Override
     public void startUp(FloodlightModuleContext context) throws FloodlightModuleException {
         try {
-            TimeUnit.SECONDS.sleep(3);
+            TimeUnit.SECONDS.sleep(5);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         getQueues();
     }
+
+
 }
