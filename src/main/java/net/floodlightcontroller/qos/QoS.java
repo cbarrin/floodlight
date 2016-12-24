@@ -35,9 +35,10 @@ import java.util.concurrent.TimeoutException;
  */
 public class QoS implements IQoS, IFloodlightModule {
     private static final Logger log = LoggerFactory.getLogger(QoS.class);
-    private static IOFSwitchService switchService;
+    static IOFSwitchService switchService;
 
     private boolean isQoSEnabled = false;
+    private QueueContainer queueContainer;
 
     public void getQueues() {
         OFQueueGetConfigRequest request;
@@ -113,6 +114,7 @@ public class QoS implements IQoS, IFloodlightModule {
     @Override
     public void init(FloodlightModuleContext context) throws FloodlightModuleException {
         switchService = context.getServiceImpl(IOFSwitchService.class);
+        queueContainer = new QueueContainer(context.getConfigParams(this));
     }
 
     @Override
@@ -122,7 +124,6 @@ public class QoS implements IQoS, IFloodlightModule {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        getQueues();
     }
 
 
