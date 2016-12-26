@@ -1,29 +1,21 @@
 package net.floodlightcontroller.qos;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.MappingJsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
-import net.floodlightcontroller.core.IOFSwitch;
 import net.floodlightcontroller.core.IOFSwitchListener;
 import net.floodlightcontroller.core.PortChangeType;
-import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFPacketQueue;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
-import org.projectfloodlight.openflow.protocol.OFVersion;
-import org.projectfloodlight.openflow.protocol.queueprop.OFQueueProp;
 import org.projectfloodlight.openflow.types.DatapathId;
-import org.projectfloodlight.openflow.protocol.ver13.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- *
  * Created by geddingsbarrineau on 12/19/16.
  */
 public class QueueContainer implements IOFSwitchListener {
@@ -31,25 +23,35 @@ public class QueueContainer implements IOFSwitchListener {
     private Map<DatapathId, List<OFPacketQueue>> inactiveSwitchQueues;
 
     QueueContainer(Map<String, String> configParams) {
+        activeSwitchQueues = new HashMap<>();
+        inactiveSwitchQueues = new HashMap<>();
         String switchesInitialQueues = configParams.get("switchesInitialQueues");
         inactiveSwitchQueues = getInitialQueueMapFromJson(switchesInitialQueues);
-        moveActiveQueues();
+        //moveActiveQueues();
     }
 
     private void moveActiveQueues() {
-        for (DatapathId dpid : QoS.switchService.getAllSwitchDpids()) {
+        for (DatapathId dpid : QoS.getSwitchService().getAllSwitchDpids()) {
             if (inactiveSwitchQueues.containsKey(dpid)) {
                 activeSwitchQueues.put(dpid, inactiveSwitchQueues.remove(dpid));
             }
         }
     }
 
-    Map<DatapathId, List<OFPacketQueue>> getQueues() {
+    Map<DatapathId, List<OFPacketQueue>> getActiveQueues() {
         return activeSwitchQueues;
     }
 
-    List<OFPacketQueue> getQueuesOnSwitch(DatapathId dpid) {
+    Map<DatapathId, List<OFPacketQueue>> getInactiveQueues() {
+        return inactiveSwitchQueues;
+    }
+
+    List<OFPacketQueue> getActiveQueuesOnSwitch(DatapathId dpid) {
         return activeSwitchQueues.get(dpid);
+    }
+
+    List<OFPacketQueue> getInactiveQueuesOnSwitch(DatapathId dpid) {
+        return inactiveSwitchQueues.get(dpid);
     }
 
     Map<DatapathId, List<OFPacketQueue>> getInitialQueueMapFromJson(String json) {
@@ -61,8 +63,9 @@ public class QueueContainer implements IOFSwitchListener {
         module.addKeyDeserializer(DatapathId.class, new DatapathIdDeserializer());
         mapper.registerModule(module);
 
-        TypeReference<HashMap<DatapathId,List<OFPacketQueue>>> typeRef
-                = new TypeReference<HashMap<DatapathId,List<OFPacketQueue>>>() {};
+        TypeReference<HashMap<DatapathId, List<OFPacketQueue>>> typeRef
+                = new TypeReference<HashMap<DatapathId, List<OFPacketQueue>>>() {
+        };
         try {
             queues = mapper.readValue(json, typeRef);
         } catch (IOException e) {
