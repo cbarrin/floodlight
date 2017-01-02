@@ -5,6 +5,10 @@ import net.floodlightcontroller.core.module.FloodlightModuleContext;
 import net.floodlightcontroller.core.module.FloodlightModuleException;
 import net.floodlightcontroller.core.module.IFloodlightModule;
 import net.floodlightcontroller.core.module.IFloodlightService;
+import org.projectfloodlight.openflow.protocol.OFPacketIn;
+import org.projectfloodlight.openflow.protocol.OFPacketQueue;
+import org.projectfloodlight.openflow.types.DatapathId;
+import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +49,18 @@ public class QoS implements IQoS, IFloodlightModule {
     @Override
     public boolean isEnabled() {
         return isQoSEnabled;
+    }
+
+    /*
+     * Currently only returns the first queueId found, given a switch and port.
+     */
+    @Override
+    public Long getOutputQueue(DatapathId dpid, OFPort outport, OFPacketIn pi) {
+        return queueContainer.getActiveQueuesOnSwitch(dpid).stream()
+                .filter(queue -> outport.equals(queue.getPort()))
+                .map(OFPacketQueue::getQueueId)
+                .findFirst()
+                .orElse(null);
     }
 
     /*

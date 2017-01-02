@@ -17,13 +17,6 @@
 
 package net.floodlightcontroller.routing;
 
-import java.util.EnumSet;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import net.floodlightcontroller.core.FloodlightContext;
 import net.floodlightcontroller.core.IFloodlightProviderService;
 import net.floodlightcontroller.core.IOFMessageListener;
@@ -36,35 +29,23 @@ import net.floodlightcontroller.devicemanager.IDeviceService;
 import net.floodlightcontroller.devicemanager.SwitchPort;
 import net.floodlightcontroller.linkdiscovery.ILinkDiscoveryService;
 import net.floodlightcontroller.packet.IPacket;
-import net.floodlightcontroller.routing.IRoutingService;
-import net.floodlightcontroller.routing.IRoutingDecision;
-import net.floodlightcontroller.routing.Path;
+import net.floodlightcontroller.qos.IQoS;
 import net.floodlightcontroller.topology.ITopologyService;
 import net.floodlightcontroller.util.FlowModUtils;
 import net.floodlightcontroller.util.MatchUtils;
 import net.floodlightcontroller.util.OFDPAUtils;
 import net.floodlightcontroller.util.OFMessageDamper;
-
-import org.projectfloodlight.openflow.protocol.OFFlowMod;
-import org.projectfloodlight.openflow.protocol.match.Match;
-import org.projectfloodlight.openflow.protocol.match.MatchField;
-import org.projectfloodlight.openflow.protocol.OFFlowModCommand;
-import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFPacketIn;
-import org.projectfloodlight.openflow.protocol.OFPacketOut;
-import org.projectfloodlight.openflow.protocol.OFType;
-import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
-import org.projectfloodlight.openflow.types.DatapathId;
-import org.projectfloodlight.openflow.types.MacAddress;
-import org.projectfloodlight.openflow.types.OFBufferId;
-import org.projectfloodlight.openflow.types.OFPort;
-import org.projectfloodlight.openflow.types.TableId;
-import org.projectfloodlight.openflow.types.U64;
+import org.projectfloodlight.openflow.protocol.action.OFActionSetQueue;
+import org.projectfloodlight.openflow.protocol.match.Match;
+import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * Abstract base class for implementing a forwarding module.  Forwarding is
@@ -107,6 +88,7 @@ public abstract class ForwardingBase implements IOFMessageListener {
     protected ITopologyService topologyService;
     protected IDebugCounterService debugCounterService;
     protected ILinkDiscoveryService linkService;
+    protected IQoS qos;
 
     // flow-mod - for use in the cookie
     public static final int FORWARDING_APP_ID = 2;
@@ -234,6 +216,15 @@ public abstract class ForwardingBase implements IOFMessageListener {
             aob.setMaxLen(Integer.MAX_VALUE);
             actions.add(aob.build());
 
+            // Add queue action from QoS module if enabled. TODO Clean this up.
+            if (qos.isEnabled()) {
+                Long id = qos.getOutputQueue(switchDPID, outPort, pi);
+                if (id != null) {
+                    OFActionSetQueue sqb = sw.getOFFactory().actions().buildSetQueue().setQueueId(id).build();
+                    actions.add(sqb);
+                }
+            }
+
             if (FLOWMOD_DEFAULT_SET_SEND_FLOW_REM_FLAG || requestFlowRemovedNotification) {
                 Set<OFFlowModFlags> flags = new HashSet<>();
                 flags.add(OFFlowModFlags.SEND_FLOW_REM);
@@ -351,7 +342,7 @@ public abstract class ForwardingBase implements IOFMessageListener {
      * @param packetData
      * @param sw
      * @param inPort
-     * @param ports
+     * @param outPorts
      * @param cntx
      */
     public void packetOutMultiPort(byte[] packetData, IOFSwitch sw, 
