@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import net.floodlightcontroller.core.IOFSwitchListener;
 import net.floodlightcontroller.core.PortChangeType;
+import net.floodlightcontroller.core.internal.IOFSwitchService;
 import org.projectfloodlight.openflow.protocol.OFPacketQueue;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.types.DatapathId;
@@ -21,17 +22,20 @@ import java.util.Map;
 public class QueueContainer implements IOFSwitchListener {
     private Map<DatapathId, List<OFPacketQueue>> activeSwitchQueues;
     private Map<DatapathId, List<OFPacketQueue>> inactiveSwitchQueues;
+    private IOFSwitchService switchService;
 
-    QueueContainer(Map<String, String> configParams) {
+    QueueContainer(Map<String, String> configParams, IOFSwitchService switchService) {
         activeSwitchQueues = new HashMap<>();
         inactiveSwitchQueues = new HashMap<>();
+        this.switchService = switchService;
+        switchService.addOFSwitchListener(this);
         String switchesInitialQueues = configParams.get("switchesInitialQueues");
         inactiveSwitchQueues = getInitialQueueMapFromJson(switchesInitialQueues);
-        //moveActiveQueues();
+        moveActiveQueues();
     }
 
     private void moveActiveQueues() {
-        for (DatapathId dpid : QoS.getSwitchService().getAllSwitchDpids()) {
+        for (DatapathId dpid : switchService.getAllSwitchDpids()) {
             if (inactiveSwitchQueues.containsKey(dpid)) {
                 activeSwitchQueues.put(dpid, inactiveSwitchQueues.remove(dpid));
             }

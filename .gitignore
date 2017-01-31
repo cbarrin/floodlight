@@ -16,3 +16,8 @@ findbugs-results
 *.iml
 .metadata/
 /bin/
+/src/main/resources/web/index.html
+.idea/
+.vagrant/
+Vagrantfile
+out/

@@ -12,25 +12,16 @@ import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Created by geddingsbarrineau on 12/5/16.
  */
-public class QoS implements IQoS, IFloodlightModule {
+public class QoS implements IFloodlightModule, IQoS {
     private static final Logger log = LoggerFactory.getLogger(QoS.class);
-    static private IOFSwitchService switchService;
-
     private boolean isQoSEnabled = false;
     private QueueContainer queueContainer;
-
-    static IOFSwitchService getSwitchService() {
-        return switchService;
-    }
 
     /*
      * IQoS implementation
@@ -53,14 +44,22 @@ public class QoS implements IQoS, IFloodlightModule {
 
     /*
      * Currently only returns the first queueId found, given a switch and port.
+     *
+     * 1. Are there any queues on this switch and port?
+     * 2. If so, which queue is the best to put it on?
      */
     @Override
     public Long getOutputQueue(DatapathId dpid, OFPort outport, OFPacketIn pi) {
-        return queueContainer.getActiveQueuesOnSwitch(dpid).stream()
-                .filter(queue -> outport.equals(queue.getPort()))
-                .map(OFPacketQueue::getQueueId)
-                .findFirst()
-                .orElse(null);
+        Long queueId = null;
+        List<OFPacketQueue> queues = queueContainer.getActiveQueuesOnSwitch(dpid);
+        if (queues != null) {
+            queueId = queues.stream()
+                    .filter(queue -> outport.equals(queue.getPort()))
+                    .map(OFPacketQueue::getQueueId)
+                    .findFirst()
+                    .orElse(null);
+        }
+        return queueId;
     }
 
     /*
@@ -93,8 +92,8 @@ public class QoS implements IQoS, IFloodlightModule {
 
     @Override
     public void init(FloodlightModuleContext context) throws FloodlightModuleException {
-        switchService = context.getServiceImpl(IOFSwitchService.class);
-        queueContainer = new QueueContainer(context.getConfigParams(this));
+        IOFSwitchService switchService = context.getServiceImpl(IOFSwitchService.class);
+        queueContainer = new QueueContainer(context.getConfigParams(this), switchService);
     }
 
     @Override

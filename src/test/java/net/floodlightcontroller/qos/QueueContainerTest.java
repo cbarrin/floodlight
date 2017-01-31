@@ -24,7 +24,7 @@ import static org.junit.Assert.assertEquals;
 public class QueueContainerTest extends FloodlightTestCase {
 
 
-    QueueContainer queueContainer;
+    private QueueContainer queueContainer;
 
     //language=JSON
     String json = "{\"00:00:00:00:00:00:00:01\":[{\"queueId\":1,\"port\":1," +
@@ -40,7 +40,7 @@ public class QueueContainerTest extends FloodlightTestCase {
         super.setUp();
         Map<String, String> configParams = new HashMap<>();
         configParams.put("switchesInitialQueues", json);
-        queueContainer = new QueueContainer(configParams);
+        queueContainer = new QueueContainer(configParams, mockSwitchManager);
     }
 
     @Test
