@@ -17,83 +17,31 @@
 
 package net.floodlightcontroller.core.internal;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.annotation.Nonnull;
-
-import net.floodlightcontroller.core.IOFConnection;
-import net.floodlightcontroller.core.IOFConnectionBackend;
-import net.floodlightcontroller.core.IOFSwitchBackend;
-import net.floodlightcontroller.core.LogicalOFMessageCategory;
-import net.floodlightcontroller.core.PortChangeEvent;
-import net.floodlightcontroller.core.PortChangeType;
-import net.floodlightcontroller.core.SwitchDescription;
-import net.floodlightcontroller.core.SwitchDriverSubHandshakeAlreadyStarted;
-import net.floodlightcontroller.core.SwitchDriverSubHandshakeCompleted;
-import net.floodlightcontroller.core.SwitchDriverSubHandshakeNotStarted;
-import net.floodlightcontroller.core.util.AppCookie;
-import net.floodlightcontroller.core.util.URIUtil;
-
-import org.projectfloodlight.openflow.protocol.OFActionType;
-import org.projectfloodlight.openflow.protocol.OFBsnControllerConnection;
-import org.projectfloodlight.openflow.protocol.OFBsnControllerConnectionState;
-import org.projectfloodlight.openflow.protocol.OFBsnControllerConnectionsReply;
-import org.projectfloodlight.openflow.protocol.OFCapabilities;
-import org.projectfloodlight.openflow.protocol.OFControllerRole;
-import org.projectfloodlight.openflow.protocol.OFFactory;
-import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
-import org.projectfloodlight.openflow.protocol.OFFlowWildcards;
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFPortConfig;
-import org.projectfloodlight.openflow.protocol.OFPortDesc;
-import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
-import org.projectfloodlight.openflow.protocol.OFPortReason;
-import org.projectfloodlight.openflow.protocol.OFPortState;
-import org.projectfloodlight.openflow.protocol.OFPortStatus;
-import org.projectfloodlight.openflow.protocol.OFRequest;
-import org.projectfloodlight.openflow.protocol.OFStatsReply;
-import org.projectfloodlight.openflow.protocol.OFStatsRequest;
-import org.projectfloodlight.openflow.protocol.OFTableFeatures;
-import org.projectfloodlight.openflow.protocol.OFTableFeaturesStatsReply;
-import org.projectfloodlight.openflow.protocol.OFType;
-import org.projectfloodlight.openflow.protocol.OFVersion;
-import org.projectfloodlight.openflow.types.DatapathId;
-import org.projectfloodlight.openflow.types.OFAuxId;
-import org.projectfloodlight.openflow.types.OFPort;
-import org.projectfloodlight.openflow.types.TableId;
-import org.projectfloodlight.openflow.types.U64;
-
-import net.floodlightcontroller.util.IterableUtils;
-import net.floodlightcontroller.util.LinkedHashSetWrapper;
-import net.floodlightcontroller.util.OrderedCollection;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import net.floodlightcontroller.core.*;
+import net.floodlightcontroller.core.util.AppCookie;
+import net.floodlightcontroller.core.util.URIUtil;
+import net.floodlightcontroller.util.IterableUtils;
+import net.floodlightcontroller.util.LinkedHashSetWrapper;
+import net.floodlightcontroller.util.OrderedCollection;
+import org.projectfloodlight.openflow.protocol.*;
+import org.projectfloodlight.openflow.types.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nonnull;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.URI;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * This is the internal representation of an openflow switch.
@@ -114,6 +62,8 @@ public class OFSwitch implements IOFSwitchBackend {
 	protected final DatapathId datapathId;
 
 	private Map<TableId, TableFeatures> tableFeaturesByTableId;
+
+	private IOFPipeline pipeline;
 
 	private boolean startDriverHandshakeCalled = false;
 	private final Map<OFAuxId, IOFConnectionBackend> connections;
@@ -178,6 +128,12 @@ public class OFSwitch implements IOFSwitchBackend {
 
 		this.tableFeaturesByTableId = new HashMap<TableId, TableFeatures>();
 		this.tables = new ArrayList<TableId>();
+
+		// Switch's OpenFlow pipeline
+		switch (getSwitchDescription().getHardwareDescription()) {
+			default: log.info(getSwitchDescription().toString());
+		}
+
 	}
 
 	private static int ident(int i) {
@@ -857,6 +813,7 @@ public class OFSwitch implements IOFSwitchBackend {
 
 	@Override
 	public Collection<OFMessage> write(Iterable<OFMessage> msgList, LogicalOFMessageCategory category) {
+		// TODO: Perform OF pipeline transforms here (e.g. pipeline.conformMessages(m))
 		IOFConnection conn = this.getConnection(category); /* do first to check for supported category */
 		Collection<OFMessage> validMsgs = new ArrayList<OFMessage>();
 		Collection<OFMessage> invalidMsgs = SwitchRoleMessageValidator.pruneInvalidMessages(

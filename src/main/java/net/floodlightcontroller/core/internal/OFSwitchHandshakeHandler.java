@@ -1,89 +1,27 @@
 package net.floodlightcontroller.core.internal;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Nonnull;
-
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import io.netty.util.Timer;
-import net.floodlightcontroller.core.HARole;
-import net.floodlightcontroller.core.IOFConnection;
-import net.floodlightcontroller.core.IOFConnectionBackend;
-import net.floodlightcontroller.core.IOFSwitch;
+import net.floodlightcontroller.core.*;
 import net.floodlightcontroller.core.IOFSwitch.SwitchStatus;
-import net.floodlightcontroller.core.IOFSwitchBackend;
-import net.floodlightcontroller.core.PortChangeEvent;
-import net.floodlightcontroller.core.SwitchDescription;
 import net.floodlightcontroller.core.internal.OFSwitchAppHandshakePlugin.PluginResultType;
-
-import org.projectfloodlight.openflow.protocol.OFActionType;
-import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
-import org.projectfloodlight.openflow.protocol.OFBarrierReply;
-import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
-import org.projectfloodlight.openflow.protocol.OFBundleCtrlMsg;
-import org.projectfloodlight.openflow.protocol.OFControllerRole;
-import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
-import org.projectfloodlight.openflow.protocol.OFDescStatsRequest;
-import org.projectfloodlight.openflow.protocol.OFErrorMsg;
-import org.projectfloodlight.openflow.protocol.OFErrorType;
-import org.projectfloodlight.openflow.protocol.OFExperimenter;
-import org.projectfloodlight.openflow.protocol.OFFactories;
-import org.projectfloodlight.openflow.protocol.OFFactory;
-import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
-import org.projectfloodlight.openflow.protocol.OFFlowAdd;
-import org.projectfloodlight.openflow.protocol.OFFlowDelete;
-import org.projectfloodlight.openflow.protocol.OFFlowDeleteStrict;
-import org.projectfloodlight.openflow.protocol.OFFlowModFailedCode;
-import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
-import org.projectfloodlight.openflow.protocol.OFGetConfigReply;
-import org.projectfloodlight.openflow.protocol.OFGetConfigRequest;
-import org.projectfloodlight.openflow.protocol.OFGroupBucket;
-import org.projectfloodlight.openflow.protocol.OFGroupDelete;
-import org.projectfloodlight.openflow.protocol.OFGroupType;
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFNiciraControllerRole;
-import org.projectfloodlight.openflow.protocol.OFNiciraControllerRoleReply;
-import org.projectfloodlight.openflow.protocol.OFNiciraControllerRoleRequest;
-import org.projectfloodlight.openflow.protocol.OFPacketIn;
-import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
-import org.projectfloodlight.openflow.protocol.OFPortStatus;
-import org.projectfloodlight.openflow.protocol.OFQueueGetConfigReply;
-import org.projectfloodlight.openflow.protocol.OFRoleReply;
-import org.projectfloodlight.openflow.protocol.OFRoleRequest;
-import org.projectfloodlight.openflow.protocol.OFRoleStatus;
-import org.projectfloodlight.openflow.protocol.OFSetConfig;
-import org.projectfloodlight.openflow.protocol.OFStatsReply;
-import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
-import org.projectfloodlight.openflow.protocol.OFStatsRequestFlags;
-import org.projectfloodlight.openflow.protocol.OFStatsType;
-import org.projectfloodlight.openflow.protocol.OFTableFeaturesStatsReply;
-import org.projectfloodlight.openflow.protocol.OFTableFeaturesStatsRequest;
-import org.projectfloodlight.openflow.protocol.OFType;
-import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.actionid.OFActionId;
 import org.projectfloodlight.openflow.protocol.errormsg.OFBadRequestErrorMsg;
 import org.projectfloodlight.openflow.protocol.errormsg.OFFlowModFailedErrorMsg;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
-import org.projectfloodlight.openflow.types.DatapathId;
-import org.projectfloodlight.openflow.types.OFAuxId;
-import org.projectfloodlight.openflow.types.OFGroup;
-import org.projectfloodlight.openflow.types.OFPort;
-import org.projectfloodlight.openflow.types.TableId;
-import org.projectfloodlight.openflow.types.U64;
+import org.projectfloodlight.openflow.types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Switch handler deals with the switch connection and dispatches
@@ -1017,7 +955,11 @@ public class OFSwitchHandshakeHandler implements IOFConnectionListener {
 
 			OFDescStatsReply descStatsReply = (OFDescStatsReply) m;
 			SwitchDescription description = new SwitchDescription(descStatsReply);
+
 			sw = switchManager.getOFSwitchInstance(mainConnection, description, factory, featuresReply.getDatapathId());
+			
+			// TODO: Document this.
+			sw.setSwitchProperties(description);
 			
 			// set switch information
 			// set features reply and channel first so we a DPID and

@@ -1,68 +1,5 @@
 package net.floodlightcontroller.core.internal;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
-
-import net.floodlightcontroller.core.FloodlightContext;
-import net.floodlightcontroller.core.HAListenerTypeMarker;
-import net.floodlightcontroller.core.HARole;
-import net.floodlightcontroller.core.IFloodlightProviderService;
-import net.floodlightcontroller.core.IHAListener;
-import net.floodlightcontroller.core.IOFConnectionBackend;
-import net.floodlightcontroller.core.IOFSwitch;
-import net.floodlightcontroller.core.IOFSwitch.SwitchStatus;
-import net.floodlightcontroller.core.IOFSwitchBackend;
-import net.floodlightcontroller.core.IOFSwitchDriver;
-import net.floodlightcontroller.core.IOFSwitchListener;
-import net.floodlightcontroller.core.LogicalOFMessageCategory;
-import net.floodlightcontroller.core.PortChangeType;
-import net.floodlightcontroller.core.SwitchDescription;
-import net.floodlightcontroller.core.SwitchSyncRepresentation;
-import net.floodlightcontroller.core.internal.Controller.IUpdate;
-import net.floodlightcontroller.core.internal.Controller.ModuleLoaderState;
-import net.floodlightcontroller.core.module.FloodlightModuleContext;
-import net.floodlightcontroller.core.module.FloodlightModuleException;
-import net.floodlightcontroller.core.module.IFloodlightModule;
-import net.floodlightcontroller.core.module.IFloodlightService;
-import net.floodlightcontroller.debugcounter.IDebugCounterService;
-
-import org.projectfloodlight.openflow.protocol.OFControllerRole;
-import org.projectfloodlight.openflow.protocol.OFFactories;
-import org.projectfloodlight.openflow.protocol.OFFactory;
-import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFPortDesc;
-import org.projectfloodlight.openflow.protocol.OFPortState;
-import org.projectfloodlight.openflow.protocol.OFVersion;
-import org.projectfloodlight.openflow.types.DatapathId;
-import org.projectfloodlight.openflow.types.IPv4Address;
-import org.projectfloodlight.openflow.types.OFAuxId;
-import org.projectfloodlight.openflow.types.TableId;
-import org.projectfloodlight.openflow.types.TransportPort;
-import org.projectfloodlight.openflow.types.U32;
-import org.sdnplatform.sync.IStoreClient;
-import org.sdnplatform.sync.IStoreListener;
-import org.sdnplatform.sync.ISyncService;
-import org.sdnplatform.sync.Versioned;
-import org.sdnplatform.sync.error.SyncException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
@@ -72,7 +9,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.group.DefaultChannelGroup;
@@ -81,6 +17,32 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import net.floodlightcontroller.core.*;
+import net.floodlightcontroller.core.IOFSwitch.SwitchStatus;
+import net.floodlightcontroller.core.internal.Controller.IUpdate;
+import net.floodlightcontroller.core.internal.Controller.ModuleLoaderState;
+import net.floodlightcontroller.core.module.FloodlightModuleContext;
+import net.floodlightcontroller.core.module.FloodlightModuleException;
+import net.floodlightcontroller.core.module.IFloodlightModule;
+import net.floodlightcontroller.core.module.IFloodlightService;
+import net.floodlightcontroller.debugcounter.IDebugCounterService;
+import org.projectfloodlight.openflow.protocol.*;
+import org.projectfloodlight.openflow.types.*;
+import org.sdnplatform.sync.IStoreClient;
+import org.sdnplatform.sync.IStoreListener;
+import org.sdnplatform.sync.ISyncService;
+import org.sdnplatform.sync.Versioned;
+import org.sdnplatform.sync.error.SyncException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * The Switch Manager class contains most of the code involved with dealing
@@ -478,8 +440,12 @@ IHAListener, IFloodlightModule, IOFSwitchService, IStoreListener<DatapathId> {
     public IOFSwitchBackend getOFSwitchInstance(IOFConnectionBackend connection,
             SwitchDescription description,
             OFFactory factory, DatapathId datapathId) {
+        Preconditions.checkNotNull(connection, "connection");
+        Preconditions.checkNotNull(description, "description");
+        Preconditions.checkNotNull(factory, "factory");
+        Preconditions.checkNotNull(datapathId, "id");
 
-        return driverRegistry.getOFSwitchInstance(connection, description, factory, datapathId);
+        return new OFSwitch(connection, factory, this, datapathId);
     }
 
     @Override
