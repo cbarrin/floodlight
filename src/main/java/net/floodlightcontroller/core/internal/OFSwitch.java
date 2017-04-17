@@ -63,7 +63,7 @@ public class OFSwitch implements IOFSwitchBackend {
 
 	private Map<TableId, TableFeatures> tableFeaturesByTableId;
 
-	private IOFPipeline pipeline;
+	private OFPipeline pipeline;
 
 	private boolean startDriverHandshakeCalled = false;
 	private final Map<OFAuxId, IOFConnectionBackend> connections;
@@ -1196,6 +1196,10 @@ public class OFSwitch implements IOFSwitchBackend {
 	@Override
 	public void setSwitchProperties(SwitchDescription description) {
 		this.description = description;
+		
+		// Setting the switch's OpenFlow pipeline based on the SwitchDescription.
+		// This should probably be moved out to its own function.
+		
 	}
 
 
