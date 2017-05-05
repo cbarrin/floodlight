@@ -16,37 +16,21 @@
 
 package net.floodlightcontroller.core.internal;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import net.floodlightcontroller.core.*;
+import net.floodlightcontroller.core.util.URIUtil;
+import org.easymock.EasyMock;
+import org.junit.Before;
+import org.junit.Test;
+import org.projectfloodlight.openflow.protocol.*;
+import org.projectfloodlight.openflow.types.DatapathId;
+import org.projectfloodlight.openflow.types.OFAuxId;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.easymock.EasyMock;
-import org.junit.Before;
-import org.junit.Test;
-
-import net.floodlightcontroller.core.IOFSwitchBackend;
-import net.floodlightcontroller.core.SwitchDriverSubHandshakeAlreadyStarted;
-import net.floodlightcontroller.core.SwitchDriverSubHandshakeCompleted;
-import net.floodlightcontroller.core.SwitchDriverSubHandshakeNotStarted;
-import net.floodlightcontroller.core.util.URIUtil;
-
-import org.projectfloodlight.openflow.protocol.OFBsnControllerConnection;
-import org.projectfloodlight.openflow.protocol.OFBsnControllerConnectionState;
-import org.projectfloodlight.openflow.protocol.OFBsnControllerConnectionsReply;
-import org.projectfloodlight.openflow.protocol.OFControllerRole;
-import org.projectfloodlight.openflow.protocol.OFFactories;
-import org.projectfloodlight.openflow.protocol.OFFactory;
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFNiciraControllerRole;
-import org.projectfloodlight.openflow.protocol.OFVersion;
-import org.projectfloodlight.openflow.types.DatapathId;
-import org.projectfloodlight.openflow.types.OFAuxId;
+import static org.junit.Assert.*;
 
 public class OFSwitchTest {
 	protected OFSwitch sw;
@@ -56,7 +40,7 @@ public class OFSwitchTest {
 	public void setUp() throws Exception {
 		MockOFConnection mockConnection = new MockOFConnection(DatapathId.of(1), OFAuxId.MAIN);
 		sw = new OFSwitch(mockConnection, OFFactories.getFactory(OFVersion.OF_10),
-				EasyMock.createMock(IOFSwitchManager.class), DatapathId.of(1));
+				EasyMock.createMock(IOFSwitchManager.class), DatapathId.of(1), new SwitchDescription());
 	}
 
 	@Test

@@ -63,7 +63,8 @@ public class OFSwitch implements IOFSwitchBackend {
 
 	private Map<TableId, TableFeatures> tableFeaturesByTableId;
 
-	private OFPipeline pipeline;
+	/* Change the visibility on this before pushing */
+	public IOFPipeline ofpipeline;
 
 	private boolean startDriverHandshakeCalled = false;
 	private final Map<OFAuxId, IOFConnectionBackend> connections;
@@ -94,7 +95,7 @@ public class OFSwitch implements IOFSwitchBackend {
 	}
 
 	public OFSwitch(IOFConnectionBackend connection, @Nonnull OFFactory factory, @Nonnull IOFSwitchManager switchManager,
-			@Nonnull DatapathId datapathId) {
+					@Nonnull DatapathId datapathId, SwitchDescription switchDescription) {
 		if(connection == null)
 			throw new NullPointerException("connection must not be null");
 		if(!connection.getAuxId().equals(OFAuxId.MAIN))
@@ -129,10 +130,10 @@ public class OFSwitch implements IOFSwitchBackend {
 		this.tableFeaturesByTableId = new HashMap<TableId, TableFeatures>();
 		this.tables = new ArrayList<TableId>();
 
-		// Switch's OpenFlow pipeline
-		switch (getSwitchDescription().getHardwareDescription()) {
-			default: log.info(getSwitchDescription().toString());
-		}
+		// Switch's description and OpenFlow pipeline
+		this.description = switchDescription;
+		this.ofpipeline = OFPipelines.getPipelineFromDescription(switchDescription);
+		log.debug("{} - OpenFlow pipeline chosen: {}", this.datapathId, this.ofpipeline.getClass().getSimpleName());
 
 	}
 
@@ -194,7 +195,7 @@ public class OFSwitch implements IOFSwitchBackend {
 		 * CALLER MUST HOLD WRITELOCK
 		 *
 		 * @param newPortsByNumber
-		 * @throws IllegaalStateException if called without holding the
+		 * @throws IllegalStateException if called without holding the
 		 * writelock
 		 */
 		private void updatePortsWithNewPortsByNumber(
@@ -447,7 +448,7 @@ public class OFSwitch implements IOFSwitchBackend {
 		 * Compare the current ports of this switch to the newPorts list and
 		 * return the changes that would be applied to transform the current
 		 * ports to the new ports. No internal data structures are updated
-		 * see {@link #compareAndUpdatePorts(List, boolean)}
+		 * see {@link #compareAndUpdatePorts(Collection, boolean)}
 		 *
 		 * @param newPorts the list of new ports
 		 * @return The list of differences between the current ports and
@@ -462,7 +463,7 @@ public class OFSwitch implements IOFSwitchBackend {
 		 * Compare the current ports of this switch to the newPorts list and
 		 * return the changes that would be applied to transform the current
 		 * ports to the new ports. No internal data structures are updated
-		 * see {@link #compareAndUpdatePorts(List, boolean)}
+		 * see {@link #compareAndUpdatePorts(Collection, boolean)}
 		 *
 		 * @param newPorts the list of new ports
 		 * @return The list of differences between the current ports and
@@ -682,7 +683,7 @@ public class OFSwitch implements IOFSwitchBackend {
 		 * @param msgList the list of messages to sort
 		 * @param valid the list of valid messages (caller must allocate)
 		 * @param swVersion the OFVersion of the switch
-		 * @param isSlave true if controller is slave; false otherwise
+		 * @param isActive true if controller is master or equal; false if slave
 		 * @return list of messages that are not valid, removed from input parameter msgList
 		 */
 		protected static Collection<OFMessage> pruneInvalidMessages(Iterable<OFMessage> msgList, Collection<OFMessage> valid, OFVersion swVersion, boolean isActive) {
@@ -1300,5 +1301,10 @@ public class OFSwitch implements IOFSwitchBackend {
 	@Override
 	public U64 getLatency() {
 		return this.connections.get(OFAuxId.MAIN).getLatency();
+	}
+	
+	@Override
+	public IOFPipeline getOFPipeline() {
+		return this.ofpipeline;
 	}
 }

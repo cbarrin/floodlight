@@ -1,20 +1,15 @@
 package net.floodlightcontroller.core.internal;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import net.floodlightcontroller.core.SwitchDescription;
+import org.easymock.EasyMock;
+import org.projectfloodlight.openflow.protocol.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import org.easymock.EasyMock;
-import org.projectfloodlight.openflow.protocol.OFCapabilities;
-import org.projectfloodlight.openflow.protocol.OFFactories;
-import org.projectfloodlight.openflow.protocol.OFStatsReply;
-import org.projectfloodlight.openflow.protocol.OFStatsRequest;
-import org.projectfloodlight.openflow.protocol.OFStatsType;
-import org.projectfloodlight.openflow.protocol.OFVersion;
-
-import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * A sublcass of OFSwitchImpl that contains extra setters.
@@ -27,7 +22,7 @@ public class MockOFSwitchImpl extends OFSwitch {
 
     public MockOFSwitchImpl(MockOFConnection connection) {
         super(connection, OFFactories.getFactory(OFVersion.OF_10),
-              EasyMock.createMock(IOFSwitchManager.class), connection.getDatapathId());
+              EasyMock.createMock(IOFSwitchManager.class), connection.getDatapathId(), new SwitchDescription());
         statsMap = new HashMap<OFStatsType, List<OFStatsReply>>();
     }
 

@@ -16,39 +16,21 @@
 
 package net.floodlightcontroller.util;
 
-import static org.junit.Assert.*;
-
-import java.net.SocketAddress;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import net.floodlightcontroller.core.IOFConnection;
-import net.floodlightcontroller.core.IOFSwitch;
-import net.floodlightcontroller.core.LogicalOFMessageCategory;
-import net.floodlightcontroller.core.SwitchDescription;
+import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ListenableFuture;
+import net.floodlightcontroller.core.*;
 import net.floodlightcontroller.core.internal.OFConnection;
 import net.floodlightcontroller.core.internal.TableFeatures;
-
-import org.projectfloodlight.openflow.protocol.OFActionType;
-import org.projectfloodlight.openflow.protocol.OFCapabilities;
-import org.projectfloodlight.openflow.protocol.OFControllerRole;
-import org.projectfloodlight.openflow.protocol.OFFactory;
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFPortDesc;
-import org.projectfloodlight.openflow.protocol.OFRequest;
-import org.projectfloodlight.openflow.protocol.OFStatsReply;
-import org.projectfloodlight.openflow.protocol.OFStatsRequest;
+import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.TableId;
 import org.projectfloodlight.openflow.types.U64;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ListenableFuture;
+import java.net.SocketAddress;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 
 /**
@@ -347,6 +329,11 @@ public class OFMessageDamperMockSwitch implements IOFSwitch {
 	@Override
 	public U64 getLatency() {
 		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IOFPipeline getOFPipeline() {
 		return null;
 	}
 }

@@ -16,62 +16,23 @@
 
 package net.floodlightcontroller.core.internal;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
+import net.floodlightcontroller.core.*;
+import net.floodlightcontroller.debugcounter.DebugCounterServiceImpl;
+import net.floodlightcontroller.debugcounter.IDebugCounterService;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
-
-import net.floodlightcontroller.core.IOFConnectionBackend;
-import net.floodlightcontroller.core.IOFSwitchBackend;
-import net.floodlightcontroller.core.LogicalOFMessageCategory;
-import net.floodlightcontroller.core.PortChangeEvent;
-import net.floodlightcontroller.core.PortChangeType;
-import net.floodlightcontroller.core.SwitchDescription;
-import net.floodlightcontroller.core.SwitchDriverSubHandshakeAlreadyStarted;
-import net.floodlightcontroller.core.SwitchDriverSubHandshakeCompleted;
-import net.floodlightcontroller.core.SwitchDriverSubHandshakeNotStarted;
-import net.floodlightcontroller.core.internal.IOFSwitchManager;
-import net.floodlightcontroller.core.internal.OFSwitch;
-import net.floodlightcontroller.core.internal.SwitchManagerCounters;
-import net.floodlightcontroller.debugcounter.DebugCounterServiceImpl;
-import net.floodlightcontroller.debugcounter.IDebugCounterService;
-
-import org.projectfloodlight.openflow.protocol.OFControllerRole;
-import org.projectfloodlight.openflow.protocol.OFFactories;
-import org.projectfloodlight.openflow.protocol.OFFactory;
-import org.projectfloodlight.openflow.protocol.OFFlowAdd;
-import org.projectfloodlight.openflow.protocol.OFFlowStatsRequest;
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFPortConfig;
-import org.projectfloodlight.openflow.protocol.OFPortDesc;
-import org.projectfloodlight.openflow.protocol.OFPortFeatures;
-import org.projectfloodlight.openflow.protocol.OFPortReason;
-import org.projectfloodlight.openflow.protocol.OFPortState;
-import org.projectfloodlight.openflow.protocol.OFPortStatus;
-import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFAuxId;
 import org.projectfloodlight.openflow.types.OFPort;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 public class OFSwitchBaseTest {
     IOFSwitchManager switchManager;
@@ -81,7 +42,7 @@ public class OFSwitchBaseTest {
 
     private static class OFSwitchTest extends OFSwitch {
         public OFSwitchTest(IOFConnectionBackend connection, IOFSwitchManager switchManager) {
-            super(connection, OFFactories.getFactory(OFVersion.OF_13), switchManager, DatapathId.of(1));
+            super(connection, OFFactories.getFactory(OFVersion.OF_13), switchManager, DatapathId.of(1), new SwitchDescription());
         }
 
         @Override

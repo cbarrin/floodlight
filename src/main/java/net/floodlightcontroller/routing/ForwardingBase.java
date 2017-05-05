@@ -17,13 +17,6 @@
 
 package net.floodlightcontroller.routing;
 
-import java.util.EnumSet;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import net.floodlightcontroller.core.FloodlightContext;
 import net.floodlightcontroller.core.IFloodlightProviderService;
 import net.floodlightcontroller.core.IOFMessageListener;
@@ -36,35 +29,21 @@ import net.floodlightcontroller.devicemanager.IDeviceService;
 import net.floodlightcontroller.devicemanager.SwitchPort;
 import net.floodlightcontroller.linkdiscovery.ILinkDiscoveryService;
 import net.floodlightcontroller.packet.IPacket;
-import net.floodlightcontroller.routing.IRoutingService;
-import net.floodlightcontroller.routing.IRoutingDecision;
-import net.floodlightcontroller.routing.Path;
 import net.floodlightcontroller.topology.ITopologyService;
 import net.floodlightcontroller.util.FlowModUtils;
 import net.floodlightcontroller.util.MatchUtils;
 import net.floodlightcontroller.util.OFDPAUtils;
 import net.floodlightcontroller.util.OFMessageDamper;
-
-import org.projectfloodlight.openflow.protocol.OFFlowMod;
-import org.projectfloodlight.openflow.protocol.match.Match;
-import org.projectfloodlight.openflow.protocol.match.MatchField;
-import org.projectfloodlight.openflow.protocol.OFFlowModCommand;
-import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
-import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFPacketIn;
-import org.projectfloodlight.openflow.protocol.OFPacketOut;
-import org.projectfloodlight.openflow.protocol.OFType;
-import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
-import org.projectfloodlight.openflow.types.DatapathId;
-import org.projectfloodlight.openflow.types.MacAddress;
-import org.projectfloodlight.openflow.types.OFBufferId;
-import org.projectfloodlight.openflow.types.OFPort;
-import org.projectfloodlight.openflow.types.TableId;
-import org.projectfloodlight.openflow.types.U64;
+import org.projectfloodlight.openflow.protocol.match.Match;
+import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * Abstract base class for implementing a forwarding module.  Forwarding is
@@ -168,8 +147,8 @@ public abstract class ForwardingBase implements IOFMessageListener {
      * Push routes from back to front
      * @param route Route to push
      * @param match OpenFlow fields to match on
-     * @param srcSwPort Source switch port for the first hop
-     * @param dstSwPort Destination switch port for final hop
+     * @param pi The packet that came in and will be pushed out
+     * @param pinSwitch The switch that the packet came in on and will be pushed out on
      * @param cookie The cookie to set in each flow_mod
      * @param cntx The floodlight context
      * @param requestFlowRemovedNotification if set to true then the switch would
@@ -251,9 +230,11 @@ public abstract class ForwardingBase implements IOFMessageListener {
             FlowModUtils.setActions(fmb, actions, sw);
 
             /* Configure for particular switch pipeline */
-            if (sw.getOFFactory().getVersion().compareTo(OFVersion.OF_10) != 0) {
-                fmb.setTableId(FLOWMOD_DEFAULT_TABLE_ID);
-            }
+            fmb = sw.getOFPipeline().conformMessageToPipeline(fmb);
+//            if (sw.getOFFactory().getVersion().compareTo(OFVersion.OF_10) != 0) {
+//                fmb.setTableId(FLOWMOD_DEFAULT_TABLE_ID);
+//            }
+            
                         
             if (log.isTraceEnabled()) {
                 log.trace("Pushing Route flowmod routeIndx={} " +
@@ -351,7 +332,7 @@ public abstract class ForwardingBase implements IOFMessageListener {
      * @param packetData
      * @param sw
      * @param inPort
-     * @param ports
+     * @param outPorts
      * @param cntx
      */
     public void packetOutMultiPort(byte[] packetData, IOFSwitch sw, 
@@ -382,9 +363,10 @@ public abstract class ForwardingBase implements IOFMessageListener {
     }
 
     /**
-     * @see packetOutMultiPort
      * Accepts a PacketIn instead of raw packet data. Note that the inPort
      * and switch can be different than the packet in switch/port
+     * 
+     * @see #packetOutMultiPort(byte[], IOFSwitch, OFPort, Set, FloodlightContext)
      */
     public void packetOutMultiPort(OFPacketIn pi, IOFSwitch sw,
             OFPort inPort, Set<OFPort> outPorts, FloodlightContext cntx) {
@@ -392,9 +374,10 @@ public abstract class ForwardingBase implements IOFMessageListener {
     }
 
     /**
-     * @see packetOutMultiPort
      * Accepts an IPacket instead of raw packet data. Note that the inPort
      * and switch can be different than the packet in switch/port
+     * 
+     * @see #packetOutMultiPort(byte[], IOFSwitch, OFPort, Set, FloodlightContext)
      */
     public void packetOutMultiPort(IPacket packet, IOFSwitch sw,
             OFPort inPort, Set<OFPort> outPorts, FloodlightContext cntx) {

@@ -367,8 +367,8 @@ IHAListener, IFloodlightModule, IOFSwitchService, IStoreListener<DatapathId> {
 
     /**
      * Handles a new OF Connection
-     * @param IOFConnectionBackend connection an opened OF Connection
-     * @param OFFeaturesReply featuresReply the features reply received for the opened connection.
+     * @param connection IOFConnectionBackend an opened OF Connection
+     * @param featuresReply OFFeaturesReply the features reply received for the opened connection.
      * It is needed for the rest of the switch handshake.
      */
     @Override
@@ -445,7 +445,7 @@ IHAListener, IFloodlightModule, IOFSwitchService, IStoreListener<DatapathId> {
         Preconditions.checkNotNull(factory, "factory");
         Preconditions.checkNotNull(datapathId, "id");
 
-        return new OFSwitch(connection, factory, this, datapathId);
+        return new OFSwitch(connection, factory, this, datapathId, description);
     }
 
     @Override
@@ -1191,7 +1191,7 @@ IHAListener, IFloodlightModule, IOFSwitchService, IStoreListener<DatapathId> {
 
     /**
      * Tulio Ribeiro
-     * @param String json
+     * @param json String
      * @return Map<DatapathId, OFControllerRole>
      */
     private static Map<DatapathId, OFControllerRole> jsonToSwitchInitialRoleMap(String json) {
