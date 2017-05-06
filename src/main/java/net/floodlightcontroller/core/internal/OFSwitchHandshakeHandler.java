@@ -260,7 +260,7 @@ public class OFSwitchHandshakeHandler implements IOFConnectionListener {
 		 * Note: since we only keep the last pending request we might get
 		 * error messages for earlier role requests that we won't be able
 		 * to handle
-		 * @param xid
+		 * @param error
 		 * @return true if the error was handled by us, false otherwise
 		 * @throws SwitchStateException if the error was for the pending
 		 * role request but was unexpected
@@ -411,58 +411,6 @@ public class OFSwitchHandshakeHandler implements IOFConnectionListener {
 		 */
 		if (this.sw.getOFFactory().getVersion().compareTo(OFVersion.OF_13) >= 0) {
 			sw.getOFPipeline().addDefaultFlows(sw);
-//			/*
-//			 * Remove the default flow if it's present.
-//			 */
-////			OFFlowDeleteStrict deleteFlow = this.factory.buildFlowDeleteStrict()
-////					.setTableId(TableId.ALL)
-////					.setOutPort(OFPort.CONTROLLER)
-////					.build();
-////			this.sw.write(deleteFlow);
-//			this.sw.getOFPipeline().removeDefaultFlow(this.sw);
-//			
-//
-//			ArrayList<OFAction> actions = new ArrayList<OFAction>(1);
-//			actions.add(factory.actions().output(OFPort.CONTROLLER, 0xffFFffFF));
-//			ArrayList<OFMessage> flows = new ArrayList<OFMessage>();
-//
-//			/* If we received a table features reply, iterate over the tables */
-//			if (!this.sw.getTables().isEmpty()) {
-//				short missCount = 0;
-//				for (TableId tid : this.sw.getTables()) {
-//					/* Only add the flow if the table exists and if it supports sending to the controller */
-//					TableFeatures tf = this.sw.getTableFeatures(tid);
-//					if (tf != null && (missCount < this.sw.getMaxTableForTableMissFlow().getValue())) {
-//						if (tf.getPropApplyActionsMiss() != null) {
-//							for (OFActionId aid : tf.getPropApplyActionsMiss().getActionIds()) {
-//								if (aid.getType() == OFActionType.OUTPUT) { /* The assumption here is that OUTPUT includes the special port CONTROLLER... */
-//									OFFlowAdd defaultFlow = this.factory.buildFlowAdd()
-//											.setTableId(tid)
-//											.setPriority(0)
-//											.setInstructions(Collections.singletonList((OFInstruction) this.factory.instructions().buildApplyActions().setActions(actions).build()))
-//											.build();
-//									flows.add(defaultFlow);
-//									break; /* Stop searching for actions and go to the next table in the list */
-//								}
-//							}
-//						}
-//					}
-//					missCount++;
-//				}
-//			} else { /* Otherwise, use the number of tables starting at TableId=0 as indicated in the features reply */
-//				short missCount = 0;
-//				for (short tid = 0; tid < this.sw.getNumTables(); tid++, missCount++) {
-//					if (missCount < this.sw.getMaxTableForTableMissFlow().getValue()) { /* Only insert if we want it */
-//						OFFlowAdd defaultFlow = this.factory.buildFlowAdd()
-//								.setTableId(TableId.of(tid))
-//								.setPriority(0)
-//								.setActions(actions)
-//								.build();
-//						flows.add(defaultFlow);
-//					}
-//				}
-//			}
-//			this.sw.write(flows);
 		}
 	}
 

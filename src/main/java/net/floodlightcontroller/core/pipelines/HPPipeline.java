@@ -31,7 +31,7 @@ public class HPPipeline implements IOFPipeline {
     }
 
     @Override
-    public List<OFFlowMod> conformMessagesToPipeline(OFFlowMod.Builder fmb) {
+    public List<OFFlowMod> conformFlowsToPipeline(OFFlowMod.Builder fmb) {
         if (!fmb.getVersion().equals(OFVersion.OF_10)) {
             fmb.setTableId(DEFAULT_SW_TABLE);
         }
@@ -39,7 +39,7 @@ public class HPPipeline implements IOFPipeline {
     }
 
     @Override
-    public OFFlowMod.Builder conformMessageToPipeline(OFFlowMod.Builder fmb) {
+    public OFFlowMod.Builder conformFlowToPipeline(OFFlowMod.Builder fmb) {
         if (!fmb.getVersion().equals(OFVersion.OF_10)) {
             fmb.setTableId(DEFAULT_SW_TABLE);
         }
@@ -77,9 +77,7 @@ public class HPPipeline implements IOFPipeline {
 
     @Override
     public void removeDefaultFlow(IOFSwitch sw) {
-        /*
-         * Remove the default flow if it's present.
-	     */
+        /* Remove the default flow if it's present. */
         OFFlowDeleteStrict deleteFlow = sw.getOFFactory().buildFlowDeleteStrict()
                 .setTableId(TableId.ALL)
                 .setOutPort(OFPort.CONTROLLER)

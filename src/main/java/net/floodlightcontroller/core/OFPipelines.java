@@ -1,11 +1,11 @@
 package net.floodlightcontroller.core;
 
+import com.google.common.collect.ImmutableList;
 import net.floodlightcontroller.core.pipelines.HPPipeline;
 import net.floodlightcontroller.core.pipelines.OVSPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,13 +44,8 @@ public class OFPipelines {
         
         private static final IOFPipeline ovspipeline = new OVSPipeline();
         private static final IOFPipeline hppipeline = new HPPipeline();
-        
-        private static final List<IOFPipeline> pipelines = new ArrayList<IOFPipeline>() {
-            {
-                add(ovspipeline);
-                add(hppipeline);
-            }
-        };
+
+        private static final List<IOFPipeline> pipelines = ImmutableList.of(ovspipeline, hppipeline);
         
         private PrecachedPipeline() {}
     }

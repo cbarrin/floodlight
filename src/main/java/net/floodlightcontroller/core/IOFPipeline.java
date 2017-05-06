@@ -12,9 +12,9 @@ public interface IOFPipeline {
     
     public boolean isValidPipeline(SwitchDescription switchDescription);
     
-    public List<OFFlowMod> conformMessagesToPipeline(OFFlowMod.Builder fmb);
+    public List<OFFlowMod> conformFlowsToPipeline(OFFlowMod.Builder fmb);
     
-    public OFFlowMod.Builder conformMessageToPipeline(OFFlowMod.Builder fmb);
+    public OFFlowMod.Builder conformFlowToPipeline(OFFlowMod.Builder fmb);
     
     public List<OFMessage> getTableMissRules(IOFSwitchBackend sw);
 

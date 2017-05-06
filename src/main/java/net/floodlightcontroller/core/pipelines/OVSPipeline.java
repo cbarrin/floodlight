@@ -31,7 +31,7 @@ public class OVSPipeline implements IOFPipeline {
     }
 
     @Override
-    public List<OFFlowMod> conformMessagesToPipeline(OFFlowMod.Builder fmb) {
+    public List<OFFlowMod> conformFlowsToPipeline(OFFlowMod.Builder fmb) {
         if (!fmb.getVersion().equals(OFVersion.OF_10)) {
             fmb.setTableId(FLOWMOD_DEFAULT_TABLE_ID);
         }
@@ -39,7 +39,7 @@ public class OVSPipeline implements IOFPipeline {
     }
 
     @Override
-    public OFFlowMod.Builder conformMessageToPipeline(OFFlowMod.Builder fmb) {
+    public OFFlowMod.Builder conformFlowToPipeline(OFFlowMod.Builder fmb) {
         if (!fmb.getVersion().equals(OFVersion.OF_10)) {
             fmb.setTableId(FLOWMOD_DEFAULT_TABLE_ID);
         }

@@ -230,11 +230,7 @@ public abstract class ForwardingBase implements IOFMessageListener {
             FlowModUtils.setActions(fmb, actions, sw);
 
             /* Configure for particular switch pipeline */
-            fmb = sw.getOFPipeline().conformMessageToPipeline(fmb);
-//            if (sw.getOFFactory().getVersion().compareTo(OFVersion.OF_10) != 0) {
-//                fmb.setTableId(FLOWMOD_DEFAULT_TABLE_ID);
-//            }
-            
+            fmb = sw.getOFPipeline().conformFlowToPipeline(fmb);
                         
             if (log.isTraceEnabled()) {
                 log.trace("Pushing Route flowmod routeIndx={} " +

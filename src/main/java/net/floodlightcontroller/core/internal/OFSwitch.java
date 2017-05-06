@@ -63,8 +63,7 @@ public class OFSwitch implements IOFSwitchBackend {
 
 	private Map<TableId, TableFeatures> tableFeaturesByTableId;
 
-	/* Change the visibility on this before pushing */
-	public IOFPipeline ofpipeline;
+	private IOFPipeline ofpipeline;
 
 	private boolean startDriverHandshakeCalled = false;
 	private final Map<OFAuxId, IOFConnectionBackend> connections;
@@ -95,7 +94,7 @@ public class OFSwitch implements IOFSwitchBackend {
 	}
 
 	public OFSwitch(IOFConnectionBackend connection, @Nonnull OFFactory factory, @Nonnull IOFSwitchManager switchManager,
-					@Nonnull DatapathId datapathId, SwitchDescription switchDescription) {
+					@Nonnull DatapathId datapathId, @Nonnull SwitchDescription switchDescription) {
 		if(connection == null)
 			throw new NullPointerException("connection must not be null");
 		if(!connection.getAuxId().equals(OFAuxId.MAIN))

@@ -68,7 +68,7 @@ public class OFPipelinesTest {
         
         List<OFFlowMod> flowAddExpected = new ArrayList<>();
         flowAddExpected.add(flowAddBuilder.setTableId(TableId.ZERO).build());
-        List<OFFlowMod> flowAddActual = ovspipeline.conformMessagesToPipeline(flowAddBuilder);
+        List<OFFlowMod> flowAddActual = ovspipeline.conformFlowsToPipeline(flowAddBuilder);
         
         Assert.assertEquals(flowAddExpected, flowAddActual);
 
@@ -76,7 +76,7 @@ public class OFPipelinesTest {
         
         flowAddExpected.clear();
         flowAddExpected.add(flowAddBuilder.build());
-        flowAddActual = ovspipeline.conformMessagesToPipeline(flowAddBuilder);
+        flowAddActual = ovspipeline.conformFlowsToPipeline(flowAddBuilder);
         
         Assert.assertEquals(flowAddExpected, flowAddActual);
     }
@@ -98,7 +98,7 @@ public class OFPipelinesTest {
 
         List<OFFlowMod> flowAddExpected = new ArrayList<>();
         flowAddExpected.add(flowAddBuilder.setTableId(TableId.of(200)).build());
-        List<OFFlowMod> flowAddActual = hppipeline.conformMessagesToPipeline(flowAddBuilder);
+        List<OFFlowMod> flowAddActual = hppipeline.conformFlowsToPipeline(flowAddBuilder);
 
         Assert.assertEquals(flowAddExpected, flowAddActual);
 
@@ -106,7 +106,7 @@ public class OFPipelinesTest {
 
         flowAddExpected.clear();
         flowAddExpected.add(flowAddBuilder.build());
-        flowAddActual = hppipeline.conformMessagesToPipeline(flowAddBuilder);
+        flowAddActual = hppipeline.conformFlowsToPipeline(flowAddBuilder);
 
         Assert.assertEquals(flowAddExpected, flowAddActual);
     }
