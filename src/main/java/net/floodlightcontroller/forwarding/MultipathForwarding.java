@@ -18,8 +18,10 @@ import net.floodlightcontroller.routing.IRoutingService;
 import net.floodlightcontroller.routing.Path;
 import net.floodlightcontroller.topology.ITopologyService;
 import net.floodlightcontroller.util.OFMessageUtils;
-import org.projectfloodlight.openflow.protocol.OFPacketIn;
+import org.projectfloodlight.openflow.protocol.*;
+import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.types.DatapathId;
+import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
 
 import java.util.*;
@@ -54,27 +56,27 @@ public class MultipathForwarding extends ForwardingBase implements IFloodlightMo
             return Command.CONTINUE;
         }
 
-        List<Path> paths = routingEngineService.getPathsSlow(sw.getId(),dstAp.getNodeId(), 4);
+        List<Path> paths = routingEngineService.getPathsSlow(sw.getId(), dstAp.getNodeId(), 4);
 
         return Command.CONTINUE;
     }
-    
+
     public static Set<DatapathId> getDecisionPoints(List<Path> paths) {
         Set<DatapathId> decisionPoints = new HashSet<>();
-        
+
         for (Path path1 : paths) {
             for (Path path2 : paths) {
-                if (path1.getPath().get(0).getNodeId().equals(path2.getPath().get(0).getNodeId())) {
+                if (path1 != path2 && path1.getPath().get(0).getNodeId().equals(path2.getPath().get(0).getNodeId())) {
                     decisionPoints.add(path1.getPath().get(0).getNodeId());
                 }
             }
         }
-        
+
         for (Path path : paths) {
             List<NodePortTuple> nodePortList = path.getPath();
             for (int i = 1; i < nodePortList.size() - 2; i += 2) {
                 for (Path path1 : paths) {
-                    if (path != path1 && 
+                    if (path != path1 &&
                             Collections.indexOfSubList(path1.getPath(), ImmutableList.of(nodePortList.get(i), nodePortList.get(i + 1))) != -1) {
                         decisionPoints.add(nodePortList.get(i + 1).getNodeId());
                     }
@@ -82,6 +84,28 @@ public class MultipathForwarding extends ForwardingBase implements IFloodlightMo
             }
         }
         return decisionPoints;
+    }
+
+    private static void insertSelectGroup(IOFSwitch sw, Set<OFPort> outports) {
+        OFFactory factory = sw.getOFFactory();
+        List<OFBucket> buckets = new ArrayList<>();
+
+        for (OFPort outport : outports) {
+            buckets.add(factory.buildBucket()
+                    .setActions(Collections.singletonList((OFAction) factory.actions().buildOutput()
+                            .setMaxLen(0xffFFffFF)
+                            .setPort(outport)
+                            .build()))
+                    .build());
+        }
+
+        OFGroupMod groupMod = factory.buildGroupAdd()
+                .setGroup(OFGroup.of(1))
+                .setGroupType(OFGroupType.SELECT)
+                .setBuckets(buckets)
+                .build();
+        
+        sw.write(groupMod);
     }
 
     @Override

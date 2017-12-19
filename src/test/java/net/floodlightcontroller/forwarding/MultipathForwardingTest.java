@@ -31,8 +31,8 @@ public class MultipathForwardingTest {
                 sp(4, 2));
 
         Path path2 = path(1, 4,
-                sp(1, 1),
-                sp(1, 4),
+                sp(5, 1),
+                sp(5, 4),
                 sp(3, 1),
                 sp(3, 2),
                 sp(4, 3),
