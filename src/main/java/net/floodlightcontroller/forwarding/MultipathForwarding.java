@@ -17,9 +17,11 @@ import net.floodlightcontroller.routing.IRoutingDecision;
 import net.floodlightcontroller.routing.IRoutingService;
 import net.floodlightcontroller.routing.Path;
 import net.floodlightcontroller.topology.ITopologyService;
+import net.floodlightcontroller.util.FlowModUtils;
 import net.floodlightcontroller.util.OFMessageUtils;
 import org.projectfloodlight.openflow.protocol.*;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
@@ -56,7 +58,16 @@ public class MultipathForwarding extends ForwardingBase implements IFloodlightMo
             return Command.CONTINUE;
         }
 
+        /* Get all the paths between the source and destination */
         List<Path> paths = routingEngineService.getPathsSlow(sw.getId(), dstAp.getNodeId(), 4);
+        
+        /* Get all the decision points between the paths */
+        
+        /* Insert a flow and a select group at all of the decision points */
+        
+        /* Split the paths at each decision point */
+        
+        /* Push a route on every split path */
 
         return Command.CONTINUE;
     }
@@ -86,7 +97,7 @@ public class MultipathForwarding extends ForwardingBase implements IFloodlightMo
         return decisionPoints;
     }
 
-    private static void insertSelectGroup(IOFSwitch sw, Set<OFPort> outports) {
+    private static OFGroupMod buildSelectGroup(IOFSwitch sw, Set<OFPort> outports) {
         OFFactory factory = sw.getOFFactory();
         List<OFBucket> buckets = new ArrayList<>();
 
@@ -99,14 +110,25 @@ public class MultipathForwarding extends ForwardingBase implements IFloodlightMo
                     .build());
         }
 
-        OFGroupMod groupMod = factory.buildGroupAdd()
+        return factory.buildGroupAdd()
                 .setGroup(OFGroup.of(1))
                 .setGroupType(OFGroupType.SELECT)
                 .setBuckets(buckets)
                 .build();
-        
-        sw.write(groupMod);
     }
+
+    private static OFFlowMod buildFlow(IOFSwitch sw, Match match, OFGroup group) {
+        return sw.getOFFactory().buildFlowAdd()
+                .setHardTimeout(0)
+                .setIdleTimeout(60)
+                .setPriority(FlowModUtils.PRIORITY_MAX)
+                .setMatch(match)
+                .setActions(Collections.singletonList(sw.getOFFactory().actions().buildGroup()
+                        .setGroup(group)
+                        .build()))
+                .build();
+    }
+
 
     @Override
     public Collection<Class<? extends IFloodlightService>> getModuleServices() {
