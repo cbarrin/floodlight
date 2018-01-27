@@ -1,12 +1,15 @@
-# Floodlight build and test via Travis-CI
-
 language: java
-
 jdk:
- - oraclejdk8
-# - openjdk8 does not appear to be an option as of 04/29/16
+- oraclejdk8
 
-notifications:
-  email:
-    recipients:
-      - ryan.izard@bigswitch.com
+deploy:
+  provider: releases
+  api_key:
+    secure: i2ZBPU9yTWOwr5wBp6faJ2iM6tZha+nV7iF4Hg4SpO1SCWitxlSq2FjBih4YkXKwHKEvE9lhgLz/Dsd4Sd+W6TSPojgJfun4Zoq8MteYMs2GG/IpuBIkr8NTfr2T5HNKkGF9Us/zuuOlG5kYP8+Pup8yRIVXJA0Vy/lS6cqvUh0It0RblSceAiqg9BIoqa8uuIMQ/TnERCpjMnEs3oCcdebu4ktgxlE8rAPKCJea8YKUAXuyvZL45DAxNdwFGjIWGHa7WpI6uEUdvZe5Wjv2uQ5An6wDH6gzjdyPLpJjm8SVDT3sjRRimIFGm5XuNtVwPmlLGTV89ziiyS06bkerk04Q1kLujPlH324zbMRmFrfv+dSM1jNZSwDsJZhTAsYCGju9BebzC3uWZcrwUWiv8NLOCbu50avk/RQ9wR2gTsg2JEflNNZH9gdgTpBSSOzh5OFR0WdJYUMm1dWjmXywVweQ4ElQ0VuhhbTGmUBUiFLErfsIstX1NtYDaZ3L/fou4Fz3if2UBj3bCW3ulRtoclwUJBnmi3LROOV7oMX7cVo4yTctoNLbFeYGcydpbQVM1M3obdlQsBbwCwoitwaXQcK5jw2fetyVUEZl0h5WpIUFxXarcMXKVK0QQw9oLy6l7fhSeLVfIRGTl9ZVV+zYNSvTtrd/W6Lur92Sk2R86OE=
+  file:
+    - target/floodlight.jar
+    - src/main/resources/floodlightdefault.properties
+  skip_cleanup: true
+  on:
+    repo: geddings/floodlight
+    tags: true
