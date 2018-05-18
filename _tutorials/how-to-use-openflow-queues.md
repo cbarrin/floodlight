@@ -4,7 +4,7 @@ permalink: /tutorials/queues
 excerpt: "Descriptions and samples of all layouts included with the theme and how to best use them."
 last_modified_at: 2018-03-20T15:59:52-04:00
 toc: true
-toc_label: "Included Layouts"
+toc_label: "On This Page"
 toc_icon: "columns"
 ---
 
