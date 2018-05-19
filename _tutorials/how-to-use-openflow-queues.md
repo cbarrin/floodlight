@@ -2,15 +2,14 @@
 title: "How To Use OpenFlow Queues"
 header:
     teaser: https://source.unsplash.com/CdR2290-KAo/1600x900
-    overlay_image: https://source.unsplash.com/CdR2290-KAo/500x300
-    overlay_filter: 0.5
-permalink: /tutorials/queues
+permalink: /tutorials/queues/
 excerpt: "Descriptions and samples of all layouts included with the theme and how to best use them."
 last_modified_at: 2018-03-20T15:59:52-04:00
 toc: true
 toc_label: "On This Page"
 toc_icon: "columns"
 ---
+
 
 ## What are queues?
 

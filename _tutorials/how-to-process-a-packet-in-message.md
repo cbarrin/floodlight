@@ -1,6 +1,6 @@
 ---
 title: "How To Process A Packet-In Message"
-permalink: /tutorials/process-packet-in
+permalink: /tutorials/process-packet-in/
 excerpt: "Descriptions and samples of all layouts included with the theme and how to best use them."
 last_modified_at: 2018-03-20T15:59:52-04:00
 toc: true
