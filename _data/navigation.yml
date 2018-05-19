@@ -1,7 +1,8 @@
 # main links
 main:
   - title: "Quick-Start Guide"
-    url: /pages/quick-start-guide/
+    url: /docs/quick-start-guide/
+  - title: "Docs"
   - title: "Posts"
     url: /year-archive/
   - title: "Tutorials"
@@ -9,11 +10,17 @@ main:
   - title: "About"
     url: /about/
 
-tutorials:
+side-nav:
+  - title: "Getting Started"
+    children:
+      - title: "Quick-Start Guide"
+        url: /docs/quick-start-guide/
+      - title: "Installation"
+      - title: "Upgrading"
   - title: "Tutorials"
     url: /tutorials/
     children:
       - title: "How To Use OpenFlow Queues"
-        url: "/tutorials/queues"
+        url: /tutorials/queues/
       - title: "How To Process A Packet-In Message"
-        url: "/tutorials/process-packet-in"
+        url: /tutorials/process-packet-in/

@@ -23,7 +23,7 @@ description              : "An amazing website."
 url                      : # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : floodlight/floodlight # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
-teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
+teaser                   : https://source.unsplash.com/T8LMIN09-mo/500x300 # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 breadcrumbs              : true # true, false (default)
 words_per_minute         : 200
 comments:
@@ -92,7 +92,7 @@ analytics:
 author:
   name             : "Geddings Barrineau"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "I am an amazing person."
+  bio              : "Floodlight is a community-developed, open source, Java OpenFlow controller."
   location         : "Clemson, SC"
   email            :
   uri              :
@@ -127,6 +127,7 @@ include:
   - .htaccess
   - _pages
   - _tutorials
+  - _docs
 exclude:
   - "*.sublime-project"
   - "*.sublime-workspace"
@@ -277,7 +278,9 @@ defaults:
       layout: single
       classes: wide
       comments: true
-      author_profile: true
+      author_profile: false
+      sidebar:
+        nav: "side-nav"
   # _tutorials
   - scope:
       path: ""
@@ -289,6 +292,18 @@ defaults:
       author_profile: false
       read_time: true
       sidebar:
-        nav: "tutorials"
+        nav: "side-nav"
+  # _docs
+  - scope:
+      path: ""
+      type: docs
+    values:
+      layout: single
+      classes: wide
+      comments: true
+      author_profile: false
+      read_time: true
+      sidebar:
+        nav: "side-nav"
 
 
