@@ -5,7 +5,15 @@ main:
   - title: "Posts"
     url: /year-archive/
   - title: "Tutorials"
-    url: /tutorials-archive/
+    url: /tutorials/
   - title: "About"
     url: /about/
 
+tutorials:
+  - title: "Tutorials"
+    url: /tutorials/
+    children:
+      - title: "How To Use OpenFlow Queues"
+        url: "/tutorials/queues"
+      - title: "How To Process A Packet-In Message"
+        url: "/tutorials/process-packet-in"

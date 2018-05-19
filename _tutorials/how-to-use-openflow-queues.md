@@ -48,37 +48,41 @@ From a controller's perspective, there are few things that need to be done to qu
 
 ```java
 OFQueueGetConfigRequest cr =
-factory.buildQueueGetConfigRequest().setPort(OFPort.ANY).build(); /*
+    factory.buildQueueGetConfigRequest().setPort(OFPort.ANY).build();
+/*
 Request queues on any port (i.e. don't care) */
-ListenableFuture<OFQueueGetConfigReply> future =
-switchService.getSwitch(DatpathId.of(1)).writeRequest(cr); /* Send
+ListenableFuture < OFQueueGetConfigReply > future =
+    switchService.getSwitch(DatpathId.of(1)).writeRequest(cr);
+/* Send
 request to switch 1 */
 try {
- /* Wait up to 10s for a reply; return when received; else exception
+    /* Wait up to 10s for a reply; return when received; else exception
 thrown */
- OFQueueGetConfigReply reply = future.get(10, TimeUnit.SECONDS);
- /* Iterate over all queues */
- for (OFPacketQueue q : reply.getQueues()) {
-   OFPort p = q.getPort(); /* The switch port the queue is on */
-   long id = q.getQueueId(); /* The ID of the queue */
-   /* Determine if the queue rates */
-   for (OFQueueProp qp : q.getProperties()) {
-    int rate;
-    /* This is a bit clunky now -- need to improve API in Loxi */
-    switch (qp.getType()) {
-    case OFQueuePropertiesSerializerVer13.MIN_RATE_VAL: /* min rate */
-     OFQueuePropMinRate min = (OFQueuePropMinRate) qp;
-     rate = min.getRate();
-     break;
-    case OFQueuePropertiesSerializerVer13.MAX_RATE_VAL: /* max rate */
-     OFQueuePropMaxRate max = (OFQueuePropMaxRate) qp;
-     rate = max.getRate();
-     break;
-} }
-  }
-} catch (InterruptedException | ExecutionException | TimeoutException e)
-{ /* catch e.g. timeout */
- e.printStackTrace();
+    OFQueueGetConfigReply reply = future.get(10, TimeUnit.SECONDS);
+    /* Iterate over all queues */
+    for (OFPacketQueue q: reply.getQueues()) {
+        OFPort p = q.getPort(); /* The switch port the queue is on */
+        long id = q.getQueueId(); /* The ID of the queue */
+        /* Determine if the queue rates */
+        for (OFQueueProp qp: q.getProperties()) {
+            int rate;
+            /* This is a bit clunky now -- need to improve API in Loxi */
+            switch (qp.getType()) {
+                case OFQueuePropertiesSerializerVer13.MIN_RATE_VAL:
+                    /* min rate */
+                    OFQueuePropMinRate min = (OFQueuePropMinRate) qp;
+                    rate = min.getRate();
+                    break;
+                case OFQueuePropertiesSerializerVer13.MAX_RATE_VAL:
+                    /* max rate */
+                    OFQueuePropMaxRate max = (OFQueuePropMaxRate) qp;
+                    rate = max.getRate();
+                    break;
+            }
+        }
+    }
+} catch (InterruptedException | ExecutionException | TimeoutException e) { /* catch e.g. timeout */
+    e.printStackTrace();
 }
 ```
 
@@ -89,38 +93,38 @@ Similar to the above example is sending and processing a queue statistics reques
 ```java
 OFQueueStatsRequest sr = factory.buildQueueStatsRequest().build();
 /* Note use of writeStatsRequest (not writeRequest) */
-ListenableFuture<List<OFQueueStatsReply>> future =
-switchService.getSwitch(DatpathId.of(1)).writeStatsRequest(sr);
+ListenableFuture < List < OFQueueStatsReply >> future =
+    switchService.getSwitch(DatpathId.of(1)).writeStatsRequest(sr);
 try {
- List<OFQueueStatsReply> replies = future.get(10, TimeUnit.SECONDS);
- for (OFQueueStatsReply reply : replies) {
-  for (OFQueueStatsEntry e : reply.getEntries()) {
-   long id = e.getQueueId();
-   U64 txb = e.getTxBytes();
-   /* and so forth */
-} }
-} catch (InterruptedException | ExecutionException | TimeoutException e)
-{
- e.printStackTrace();
+    List < OFQueueStatsReply > replies = future.get(10, TimeUnit.SECONDS);
+    for (OFQueueStatsReply reply: replies) {
+        for (OFQueueStatsEntry e: reply.getEntries()) {
+            long id = e.getQueueId();
+            U64 txb = e.getTxBytes();
+            /* and so forth */
+        }
+    }
+} catch (InterruptedException | ExecutionException | TimeoutException e) {
+    e.printStackTrace();
 }
 ```
 
 We can also direct packets to a queue within a flow-mod. This is done through the flow's action – OpenFlow 1.0 uses the enqueue action, while OpenFlow 1.1+ uses the set_queue action. Note below that the set_queue action does not specify the switch port and only supplies the queue ID. The enqueue action specifies both the switch port and the queue ID. This implies that in OpenFlow 1.1 and up, queue IDs must be globally unique on a particular switch.
 
 ```java
-ArrayList<OFAction> actions = new ArrayList<OFAction>();
+ArrayList < OFAction > actions = new ArrayList < OFAction > ();
 /* For OpenFlow 1.0 */
 if (factory.getVersion().compareTo(OFVersion.OF_10) == 0) {
- OFActionEnqueue enqueue = factory.actions().buildEnqueue()
-  .setPort(OFPort.of(2)) /* Must specify port number */
-     .setQueueId(1)
-     .build();
- actions(enqueue);
+    OFActionEnqueue enqueue = factory.actions().buildEnqueue()
+        .setPort(OFPort.of(2)) /* Must specify port number */
+        .setQueueId(1)
+        .build();
+    actions(enqueue);
 } else { /* For OpenFlow 1.1+ */
- OFActionSetQueue setQueue = factory.actions().buildSetQueue()
-     .setQueueId(1)
-     .build();
- actions(setQueue);
+    OFActionSetQueue setQueue = factory.actions().buildSetQueue()
+        .setQueueId(1)
+        .build();
+    actions(setQueue);
 }
 OFFlowAdd flowAdd = factory.buildFlowAdd()
     .setActions(actions)

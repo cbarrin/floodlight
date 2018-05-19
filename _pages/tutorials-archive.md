@@ -2,7 +2,7 @@
 layout: collection
 title: "Tutorials"
 collection: tutorials
-permalink: /tutorials-archive/
+permalink: /tutorials/
 author_profile: false
 entries_layout: grid
 classes: wide
