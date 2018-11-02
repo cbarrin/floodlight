@@ -1,8 +1,7 @@
 # Table of contents
 
 * [Read Me](../README.md)
-* [Table of contents](../table-of-contents.md)
-* [FAQ](../faq.md)
+* [Tutorials](tutorials/README.md)
 
 ## Have a question?
 
