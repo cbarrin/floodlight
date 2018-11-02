@@ -1,3 +1,0 @@
-# Summary
-
-## Have a question?
